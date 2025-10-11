@@ -1,12 +1,6 @@
 // --- CONFIGURATION ---
 const API_KEY = "AIzaSyChZG0b4IiGy4DMkBnuvivTW_Q48fJ8uEg"; 
 const ADMIN_EMAIL = "pascollanm@gmail.com";
-const UNIT_NAMES = {
-    'biochemistry': '1. Biochemistry',
-    'physiology': '2. Physiology',
-    'anatomy': '3. Anatomy (Embryology, Histology, Gen. Anatomy)',
-    'nursing-skills': '4. Nursing Skills'
-};
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -24,363 +18,77 @@ const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore(); 
 
-// --- DOM ELEMENTS ---
-const appMainContent = document.getElementById('app-main-content');
-const authModal = document.getElementById('auth-modal');
-const authButton = document.getElementById('auth-button');
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
-const switchToRegister = document.getElementById('switch-to-register');
-const switchToLogin = document.getElementById('switch-to-login');
-const authError = document.getElementById('auth-error');
-const userInfoDisplay = document.getElementById('user-info');
-const adminLink = document.getElementById('admin-link');
-const newTopicForm = document.getElementById('new-topic-form');
-const discussionList = document.getElementById('discussion-list');
-const newAnnouncementForm = document.getElementById('new-announcement-form');
-const announcementList = document.getElementById('announcement-list');
+// --- TROUBLESHOOTING AUTH UI ---
+// 1. Create a simple, isolated div for testing
+const testDiv = document.createElement('div');
+testDiv.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; padding: 10px; z-index: 9999; 
+    background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; 
+    font-family: Arial, sans-serif; text-align: center;
+`;
+testDiv.innerHTML = `
+    <h3>AUTH TESTER (Temporary)</h3>
+    <input type="email" id="test-email" placeholder="Email" style="width: 180px; padding: 5px;">
+    <input type="password" id="test-password" placeholder="Password" style="width: 180px; padding: 5px;">
+    <button id="test-register-btn" style="padding: 5px 10px;">Register</button>
+    <button id="test-login-btn" style="padding: 5px 10px;">Login</button>
+    <button id="test-logout-btn" style="padding: 5px 10px; background: orange;">Logout</button>
+    <p id="test-status" style="font-weight: bold; margin-top: 5px;">Status: Initializing...</p>
+`;
+document.body.prepend(testDiv);
 
-// Modals
-const unitsButton = document.getElementById('units-button');
-const unitSelectionModal = document.getElementById('unit-selection-modal');
-const resourceSelectionModal = document.getElementById('resource-selection-modal');
-const closeButtons = document.querySelectorAll('.close-btn');
+const testStatus = document.getElementById('test-status');
+const testEmailInput = document.getElementById('test-email');
+const testPasswordInput = document.getElementById('test-password');
+const testRegisterBtn = document.getElementById('test-register-btn');
+const testLoginBtn = document.getElementById('test-login-btn');
+const testLogoutBtn = document.getElementById('test-logout-btn');
 
-// --- HELPER FUNCTIONS ---
 
-function showModal(modalId) {
-    document.getElementById(modalId).style.display = 'flex';
-}
-
-function hideModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-function switchView(viewId) {
-    document.querySelectorAll('.content-panel').forEach(panel => {
-        panel.classList.remove('active-panel');
-    });
-    document.getElementById(viewId).classList.add('active-panel');
-
-    document.querySelectorAll('.nav-item').forEach(link => {
-        link.classList.remove('active');
-    });
-    // Highlight the active link, excluding the button
-    if (viewId === 'discussion-view' || viewId === 'announcement-view' || viewId === 'admin-upload-view') {
-        document.querySelector(`.nav-item[href="#${viewId}"]`)?.classList.add('active');
-    }
-}
-
-// --- AUTHENTICATION & UI SETUP ---
-
-// Toggle between Login and Register Forms
-switchToRegister.addEventListener('click', () => {
-    loginForm.classList.add('hidden');
-    registerForm.classList.remove('hidden');
-    authError.textContent = '';
-});
-
-switchToLogin.addEventListener('click', () => {
-    registerForm.classList.add('hidden');
-    loginForm.classList.remove('hidden');
-    authError.textContent = '';
-});
-
-// Show Auth Modal
-authButton.addEventListener('click', () => {
-    // If the button says 'Logout', sign out instead
-    if (authButton.textContent === 'Logout') {
-        auth.signOut();
-    } else {
-        showModal('auth-modal');
-    }
-});
-
-// Close Modals
-closeButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        // Get the modal ID either from the data-attribute or assume auth-modal
-        const modalId = e.target.dataset.closeModal || 'auth-modal';
-        hideModal(modalId);
-    });
-});
-
-// User Registration
-registerForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    authError.textContent = '';
-    const email = e.target['register-email'].value;
-    const password = e.target['register-password'].value;
-
-    try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        // Success handled by onAuthStateChanged
-        alert("Registration successful! Welcome to the Hub."); 
-    } catch (error) {
-        console.error("Registration error:", error);
-        authError.textContent = `Registration Failed: ${error.message}`;
-    }
-});
-
-// User Login
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    authError.textContent = '';
-    const email = e.target['login-email'].value;
-    const password = e.target['login-password'].value;
-
-    try {
-        await auth.signInWithEmailAndPassword(email, password);
-        // Success handled by onAuthStateChanged
-    } catch (error) {
-        console.error("Login error:", error);
-        // Clear and specific error message for wrong credentials
-        authError.textContent = "Error: Invalid email or password. Please try again.";
-    }
-});
-
-// --- FIREBASE AUTH STATE LISTENER (The Core UI Switch) ---
+// 2. Auth Listeners & Handlers
 auth.onAuthStateChanged(user => {
     if (user) {
-        // Logged In State
-        hideModal('auth-modal');
-        appMainContent.classList.remove('hidden-content');
-        authButton.textContent = 'Logout';
-        
-        // Show User Info
-        userInfoDisplay.innerHTML = `<p>Logged in as: <strong>${user.email}</strong></p>`;
-
-        // Check for Admin status and show Admin link
-        if (user.email === ADMIN_EMAIL) {
-            adminLink.classList.remove('hidden');
-        } else {
-            adminLink.classList.add('hidden');
-        }
-
-        // Fetch initial data
-        fetchTopics();
-        fetchAnnouncements();
-        switchView('discussion-view'); // Set default view
-
+        testStatus.textContent = `Status: Logged In as ${user.email}`;
+        testDiv.style.background = '#d4edda'; // Green for success
+        testDiv.style.color = '#155724';
     } else {
-        // Logged Out State
-        appMainContent.classList.add('hidden-content');
-        authButton.textContent = 'Login / Register';
-        
-        userInfoDisplay.innerHTML = '';
-        adminLink.classList.add('hidden');
-        
-        // Ensure forms are reset to default (login view)
-        registerForm.classList.add('hidden');
-        loginForm.classList.remove('hidden');
-        authError.textContent = '';
+        testStatus.textContent = `Status: Logged Out. Please Login or Register.`;
+        testDiv.style.background = '#f8d7da'; // Red for not logged in
+        testDiv.style.color = '#721c24';
     }
 });
 
-// --- DISCUSSION TOPICS ---
-
-newTopicForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const title = e.target['topic-title'].value;
-    const content = e.target['topic-content'].value;
-    const user = auth.currentUser;
-    const postError = document.getElementById('topic-post-error');
-    postError.textContent = '';
-
-    if (!user) {
-        postError.textContent = "You must be logged in to post a topic.";
-        return;
-    }
-
+testRegisterBtn.addEventListener('click', async () => {
+    const email = testEmailInput.value;
+    const password = testPasswordInput.value;
+    testStatus.textContent = 'Attempting Register...';
     try {
-        await db.collection("topics").add({
-            title: title,
-            content: content,
-            authorId: user.uid,
-            authorEmail: user.email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            commentCount: 0 
-        });
-        
-        newTopicForm.reset();
+        await auth.createUserWithEmailAndPassword(email, password);
+        // onAuthStateChanged will update status
     } catch (error) {
-        postError.textContent = `Posting failed: ${error.message}`;
+        testStatus.textContent = `Error: ${error.message}`;
+        console.error("Register Error:", error);
     }
 });
 
-function fetchTopics() {
-    discussionList.innerHTML = '<p>Loading discussions...</p>';
-    db.collection("topics").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-        discussionList.innerHTML = '';
-        if (snapshot.empty) {
-            discussionList.innerHTML = '<p class="form-card">No topics yet. Start a discussion! 🎉</p>';
-            return;
-        }
-        snapshot.forEach(doc => {
-            const topic = doc.data();
-            const topicElement = document.createElement('article');
-            topicElement.classList.add('topic-post', 'form-card');
-            
-            const date = topic.createdAt ? topic.createdAt.toDate().toLocaleDateString() : 'N/A';
-
-            topicElement.innerHTML = `
-                <h3>${topic.title}</h3>
-                <p class="meta">Posted by <strong>${topic.authorEmail}</strong> on ${date}</p>
-                <p>${topic.content}</p>
-                <button class="btn btn-secondary" data-topic-id="${doc.id}">View Comments (${topic.commentCount || 0})</button>
-            `;
-            discussionList.appendChild(topicElement);
-        });
-    });
-}
-
-// --- ANNOUNCEMENTS ---
-
-newAnnouncementForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const title = e.target['announcement-title'].value;
-    const content = e.target['announcement-content'].value;
-    const user = auth.currentUser;
-
-    if (!user) {
-        alert("You must be logged in to post an announcement.");
-        return;
-    }
-
+testLoginBtn.addEventListener('click', async () => {
+    const email = testEmailInput.value;
+    const password = testPasswordInput.value;
+    testStatus.textContent = 'Attempting Login...';
     try {
-        await db.collection("announcements").add({
-            title: title,
-            content: content,
-            authorEmail: user.email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-        
-        newAnnouncementForm.reset();
-
+        await auth.signInWithEmailAndPassword(email, password);
+        // onAuthStateChanged will update status
     } catch (error) {
-        alert(`Posting failed: ${error.message}`);
+        testStatus.textContent = `Error: Invalid credentials or account does not exist.`;
+        console.error("Login Error:", error);
     }
 });
 
-function fetchAnnouncements() {
-    announcementList.innerHTML = '<p>Loading announcements...</p>';
-    db.collection("announcements").orderBy("createdAt", "desc").limit(10).onSnapshot(snapshot => {
-        announcementList.innerHTML = '';
-        if (snapshot.empty) {
-            announcementList.innerHTML = '<p class="form-card">No announcements currently posted.</p>';
-            return;
-        }
-        snapshot.forEach(doc => {
-            const ann = doc.data();
-            const annElement = document.createElement('article');
-            annElement.classList.add('announcement-post');
-            
-            const date = ann.createdAt ? ann.createdAt.toDate().toLocaleString() : 'N/A';
-
-            annElement.innerHTML = `
-                <h3>${ann.title}</h3>
-                <p class="meta">Posted by <strong>${ann.authorEmail}</strong> on ${date}</p>
-                <p>${ann.content}</p>
-            `;
-            announcementList.appendChild(annElement);
-        });
-    });
-}
-
-
-// --- MODAL & RESOURCE LOGIC ---
-
-// Pop-up 1: Show Unit Selection Modal
-unitsButton.addEventListener('click', () => {
-    showModal('unit-selection-modal');
+testLogoutBtn.addEventListener('click', () => {
+    auth.signOut();
 });
 
-let selectedUnit = null;
-
-// Handle Unit Selection
-document.querySelectorAll('.unit-select-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        selectedUnit = e.target.dataset.unit;
-        hideModal('unit-selection-modal');
-        
-        // Update Pop-up 2 title
-        document.getElementById('resource-modal-title').textContent = `${UNIT_NAMES[selectedUnit]} Resources`;
-        
-        showModal('resource-selection-modal');
-    });
-});
-
-// Handle Resource Type Selection (Pop-up 2)
-document.querySelectorAll('.resource-select-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        const resourceType = e.target.dataset.resourceType;
-        hideModal('resource-selection-modal');
-        
-        // Display the correct unit and resource in the main content area
-        displayUnitResource(selectedUnit, resourceType);
-    });
-});
-
-// Function to display the selected resource content (Placeholder)
-function displayUnitResource(unit, resourceType) {
-    switchView('resource-view');
-    const titleElement = document.getElementById('resource-view-title');
-    const contentElement = document.getElementById('resource-content-display');
-    
-    // Clear previous content
-    contentElement.innerHTML = '';
-    
-    titleElement.textContent = `${UNIT_NAMES[unit]} - ${resourceType.toUpperCase().replace('-', ' ')}`;
-    
-    // --- Future Logic Placeholder ---
-    contentElement.innerHTML = `
-        <p>Fetching **${resourceType}** data for **${UNIT_NAMES[unit]}**...</p>
-        <div class="form-card">
-            <p>This is where the actual Objectives, Past Paper links, or Learning Materials will be displayed based on Firestore data.</p>
-            <p>Example: If the admin uploaded a PDF link for a past paper, it would appear here.</p>
-        </div>
-    `;
-    // Future Step: Implement the data retrieval from Firestore based on (unit, resourceType)
-}
-
-// --- ADMIN UPLOAD LOGIC ---
-const adminUploadForm = document.getElementById('admin-upload-form');
-
-adminUploadForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const user = auth.currentUser;
-    // Check again here to be safe
-    if (!user || user.email !== ADMIN_EMAIL) {
-        alert("Authorization denied. You must be the admin to upload resources.");
-        return;
-    }
-    
-    const unit = e.target['upload-unit'].value;
-    const type = e.target['upload-type'].value;
-    const title = e.target['upload-title'].value;
-    const data = e.target['upload-data'].value; 
-
-    if (!unit || !type || !title || !data) {
-        alert("Please fill in all fields for the upload.");
-        return;
-    }
-
-    try {
-        await db.collection("unit_resources").add({
-            unit: unit,
-            type: type,
-            title: title,
-            data: data,
-            uploadedBy: user.email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-        alert(`Successfully uploaded ${type} for ${UNIT_NAMES[unit]}!`);
-        adminUploadForm.reset();
-    } catch (error) {
-        console.error("Admin upload error:", error);
-        alert(`Upload Failed: ${error.message}`);
-    }
-});
-
-// --- INITIAL VIEW SETUP ---
-// We don't call switchView here because the onAuthStateChanged listener handles the initial view after checking login status.
+// --- REMAINDER OF APPLICATION LOGIC ---
+// The main application logic (modals, views, fetching data) is removed for this test.
+// If the test above works, we know the API key and Firebase initialization are correct.
+// We can then re-integrate the main UI logic carefully.
