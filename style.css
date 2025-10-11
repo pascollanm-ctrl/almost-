@@ -1,13 +1,17 @@
-/* Basic Reset and Variables */
+/* Color Palette */
 :root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --background-color: #f4f7f6;
+    --primary-color: #007bff; /* Blue */
+    --accent-color: #28a745;  /* Green for positive actions/focus */
+    --secondary-color: #6c757d; /* Gray */
+    --warning-color: #ffc107; /* Yellow */
+    --background-color: #f8f9fa; /* Light Gray Background */
     --card-background: #ffffff;
-    --text-color: #333;
-    --border-color: #eee;
+    --text-color: #343a40; /* Dark Text */
+    --border-color: #dee2e6;
+    --shadow-light: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
 
+/* Basic Reset */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -15,15 +19,15 @@
 }
 
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Poppins', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
 }
 
 .container {
-    width: 90%;
-    max-width: 1100px;
+    width: 95%;
+    max-width: 1300px;
     margin: 0 auto;
 }
 
@@ -32,205 +36,208 @@ header {
     background-color: var(--primary-color);
     color: white;
     padding: 1rem 0;
-    margin-bottom: 1rem; /* Reduced margin */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-light);
 }
 
 header h1 {
     display: inline-block;
     font-size: 1.8rem;
+    font-weight: 600;
 }
 
 header nav {
     float: right;
 }
 
-#auth-button {
+/* --- Utility Classes --- */
+.hidden { display: none !important; }
+.hidden-content { display: none; }
+.error-message { color: #dc3545; font-weight: 600; margin-top: 10px; }
+
+/* --- Buttons --- */
+.btn {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s, opacity 0.3s;
+    margin-top: 10px;
+}
+
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover { background-color: #0056b3; }
+
+.btn-accent { background-color: var(--accent-color); color: white; }
+.btn-accent:hover { background-color: #1e7e34; }
+
+.btn-secondary { background-color: var(--secondary-color); color: white; }
+.btn-secondary:hover { background-color: #5a6268; }
+
+.btn-warning { background-color: var(--warning-color); color: var(--text-color); }
+.btn-warning:hover { background-color: #e0a800; }
+
+.btn-primary-outline {
     background-color: white;
     color: var(--primary-color);
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s;
+    border: 2px solid var(--primary-color);
 }
-
-#auth-button:hover {
-    background-color: #e2e6ea;
-}
-
-/* --- NEW LAYOUT: SIDEBAR AND MAIN CONTENT --- */
-
-#content-wrapper {
-    display: flex; 
-    gap: 30px; 
-    margin-top: 2rem;
-}
-
-#sidebar-menu {
-    flex: 0 0 250px; 
-    background: var(--card-background);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    height: fit-content; 
-    /* Ensure the list starts expanded */
-}
-
-#main-content {
-    flex: 1; 
-    min-width: 0; 
-}
-
-#sidebar-menu h2 {
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-}
-
-/* Sidebar Navigation Styling */
-#resource-nav {
-    list-style: none;
-    padding: 0;
-}
-
-#resource-nav > li {
-    margin-bottom: 10px;
-}
-
-#resource-nav a {
-    display: block;
-    padding: 8px 10px;
-    text-decoration: none;
-    color: var(--text-color);
-    border-radius: 4px;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-#resource-nav a:hover {
+.btn-primary-outline:hover {
     background-color: var(--primary-color);
     color: white;
 }
 
-/* Submenu (Units) */
-.submenu {
-    list-style: none;
-    padding-left: 15px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    border-left: 2px solid var(--border-color);
-    display: block; /* Ensure all menus are visible by default */
+.btn-accent-outline {
+    background-color: white;
+    color: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    margin: 5px;
+}
+.btn-accent-outline:hover {
+    background-color: var(--accent-color);
+    color: white;
 }
 
-.submenu a {
-    padding: 5px 10px;
-    font-size: 0.95rem;
-    color: var(--secondary-color);
+/* --- Main Layout --- */
+main.container {
+    display: flex;
+    gap: 25px;
 }
 
-.submenu a:hover {
-    background-color: #e9ecef;
-    color: var(--primary-color);
-}
-
-
-/* Main Content Styling */
-main h2 {
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-
-/* Content Blocks (for switching views) */
-.content-block {
+#sidebar {
+    width: 250px;
     background: var(--card-background);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
-    display: none; /* All blocks hidden by default, JS shows the active one */
+    height: fit-content;
 }
 
-.content-block.active {
-    display: block; /* Crucial: Only the active block is shown */
-}
-
-/* Forms (New Topic & Auth) - IMPROVED STYLING */
-form {
-    background: var(--card-background);
-    padding: 10px 0; /* Adjusted padding */
-    border-radius: 8px;
+#user-info {
+    padding: 10px 0;
     margin-bottom: 15px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-title {
+    color: var(--primary-color);
+    font-size: 1rem;
+    margin-top: 20px;
+    margin-bottom: 5px;
+}
+
+.nav-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 10px;
+    margin: 5px 0;
+    text-decoration: none;
+    color: var(--text-color);
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.nav-item:hover:not(.active) {
+    background-color: #f1f1f1;
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+#content-area {
+    flex-grow: 1;
+}
+
+.content-panel {
+    background: var(--card-background);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-light);
+    margin-bottom: 20px;
+    display: none;
+}
+
+.content-panel.active-panel {
+    display: block;
+}
+
+.content-panel h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* --- Forms & Cards --- */
+.form-card {
+    background: #fcfcfc;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 input[type="text"],
 input[type="email"],
 input[type="password"],
-textarea {
+textarea,
+select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-bottom: 10px;
-    border: 1px solid #ccc; /* Clearer border */
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
 }
 
-button[type="submit"],
-.view-comments,
-#new-announcement-form button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s;
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 600;
 }
 
-button[type="submit"]:hover,
-.view-comments:hover,
-#new-announcement-form button:hover {
-    background-color: #0056b3;
-}
-
-/* Announcement Section Specific Styles */
-#announcement-feed {
+/* --- Announcements --- */
+.announcement-post {
     border: 1px solid var(--border-color);
     padding: 15px;
     margin-bottom: 15px;
-    max-height: 200px;
-    overflow-y: auto;
+    border-left: 5px solid var(--accent-color);
     border-radius: 4px;
+    background-color: #f9fffb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-#new-announcement-form textarea {
+.announcement-post h3 {
+    color: var(--accent-color);
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.announcement-post .meta {
+    font-size: 0.85rem;
+    color: var(--secondary-color);
     margin-bottom: 10px;
 }
 
-/* Topic Posts */
-.topic-post {
-    background: var(--card-background);
-    border: 1px solid var(--border-color);
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-}
-
-/* Modal (Authentication) */
+/* --- Modals --- */
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.6); /* Darker backdrop for visibility */
+    background-color: rgba(0,0,0,0.6);
     justify-content: center;
     align-items: center;
 }
@@ -238,25 +245,50 @@ button[type="submit"]:hover,
 .modal-content {
     background-color: var(--card-background);
     padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    box-shadow: var(--shadow-light);
     width: 90%;
-    max-width: 400px;
+    max-width: 450px;
+    position: relative;
+    text-align: center;
 }
 
-/* Utility */
-#new-topic-section {
-    /* Kept hidden/shown by JS based on login status */
+.small-modal {
+    max-width: 350px;
 }
 
-hr {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 20px 0;
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--secondary-color);
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
-/* Footer */
+.close-btn:hover {
+    color: var(--text-color);
+}
+
+.auth-message-link {
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+/* Unit/Resource Selection Buttons inside Modals */
+.unit-select-btn,
+.resource-select-btn {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+}
+
+/* Footer (Simple) */
 footer {
     text-align: center;
     padding: 1rem 0;
