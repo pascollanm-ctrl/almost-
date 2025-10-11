@@ -24,11 +24,13 @@ const discussionList = document.getElementById('discussion-list');
 const newTopicForm = document.getElementById('new-topic-form');
 const authError = document.getElementById('auth-error');
 const closeAuthModal = document.getElementById('close-auth-modal');
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
 
 // New elements for the Resource Hub
 const sidebarMenu = document.getElementById('sidebar-menu');
-const mainContent = document.getElementById('main-content');
 const discussionForum = document.getElementById('discussion-forum');
+const newTopicSection = document.getElementById('new-topic-section'); // Get the topic section
 const resourceDisplayArea = document.getElementById('resource-display-area');
 const newAnnouncementForm = document.getElementById('new-announcement-form');
 const announcementFeed = document.getElementById('announcement-feed');
@@ -36,13 +38,14 @@ const announcementFeed = document.getElementById('announcement-feed');
 // --- HELPER FUNCTION: CONTENT SWITCHING ---
 
 /**
- * Hides all content sections and shows the requested one.
+ * Hides all main content sections and shows the requested one.
  * @param {HTMLElement} elementToShow The main section element to make visible.
  */
 function switchContent(elementToShow) {
     // Hide all major blocks
-    discussionForum.classList.remove('active');
-    resourceDisplayArea.classList.remove('active');
+    document.querySelectorAll('#main-content .content-block').forEach(block => {
+        block.classList.remove('active');
+    });
 
     // Show the requested block
     elementToShow.classList.add('active');
@@ -74,7 +77,6 @@ newAnnouncementForm.addEventListener('submit', async (e) => {
 });
 
 function fetchAnnouncements() {
-    // Listen for real-time updates for announcements
     db.collection("announcements").orderBy("createdAt", "desc").limit(10).onSnapshot(snapshot => {
         announcementFeed.innerHTML = '';
         
@@ -103,7 +105,6 @@ function fetchAnnouncements() {
 
 newTopicForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // ... (Topic posting logic remains the same) ...
     const title = e.target['topic-title'].value;
     const content = e.target['topic-content'].value;
     const user = auth.currentUser;
@@ -165,69 +166,58 @@ function fetchTopics() {
 }
 
 
-// --- CORE FUNCTIONALITY: RESOURCE HUB NAVIGATION ---
+// --- CORE FUNCTIONALITY: RESOURCE HUB NAVIGATION & UPLOADS ---
 
-/**
- * Dynamically handles the click event for all resource links in the sidebar.
- */
 sidebarMenu.addEventListener('click', (e) => {
+    // Handle resource links
     if (e.target.tagName === 'A' && e.target.hasAttribute('data-section')) {
         e.preventDefault();
         
-        const sectionId = e.target.getAttribute('data-section'); // e.g., "biochemistry-pastpapers"
-        const [unit, resourceType] = sectionId.split('-'); // e.g., ["biochemistry", "pastpapers"]
+        const sectionId = e.target.getAttribute('data-section'); 
+        const [unit, resourceType] = sectionId.split('-'); 
 
-        // 1. Switch the main content area to display resources
         switchContent(resourceDisplayArea);
 
-        // 2. Clear previous content
         resourceDisplayArea.innerHTML = '';
 
-        // 3. Display Loading Message and Title
         resourceDisplayArea.innerHTML = `
-            <h2>${unit.charAt(0).toUpperCase() + unit.slice(1)}: ${resourceType.charAt(0).toUpperCase() + resourceType.slice(1).replace('papers', ' Papers')}</h2>
-            <div id="resource-content-list">Loading...</div>
-            <div id="upload-form-area"></div>
+            <section class="content-block active">
+                <h2>${unit.charAt(0).toUpperCase() + unit.slice(1)}: ${resourceType.charAt(0).toUpperCase() + resourceType.slice(1).replace('papers', ' Papers')}</h2>
+                <div id="resource-content-list">Loading...</div>
+                <div id="upload-form-area"></div>
+            </section>
         `;
         
-        // 4. Call a function to handle the data fetch and upload forms for this specific section
         handleResourceSection(unit, resourceType);
 
-        // Optional: Toggle submenus (optional, can be done with CSS or JS)
-        // For now, we only handle the content switch.
-    } else if (e.target.tagName === 'A' && e.target.classList.contains('unit-toggle')) {
+    } 
+    // Handle unit toggles (optional, but ensures links don't lead to #)
+    else if (e.target.tagName === 'A' && e.target.classList.contains('unit-toggle')) {
         e.preventDefault();
-        const submenuId = e.target.getAttribute('data-unit') + '-menu';
-        const submenu = document.getElementById(submenuId);
-        if (submenu) {
-             submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-        }
+        // You could add logic here to open/close submenus if they were initially hidden.
+        // For now, we will simply switch to the discussion forum if a top-level unit link is clicked
+        switchContent(discussionForum); 
     }
 });
 
-/**
- * Placeholder function to handle resource display and link upload forms.
- * THIS IS WHERE PHASE 1 WILL BE BUILT OUT.
- */
+
 function handleResourceSection(unit, resourceType) {
     const resourceContentList = document.getElementById('resource-content-list');
     const uploadFormArea = document.getElementById('upload-form-area');
 
-    // Display Objectives: Just placeholder text for now
     if (resourceType === 'objectives') {
-        resourceContentList.innerHTML = `<p>The objectives for ${unit} are currently stored offline. This is where the required learning outcomes will be displayed.</p>`;
+        resourceContentList.innerHTML = `<p>The **Objectives** for **${unit.toUpperCase()}** will be listed here. This content is typically static and would be hardcoded or managed by an admin.</p>`;
         uploadFormArea.innerHTML = '';
         return;
     }
     
-    // Display Achievements: Just placeholder text for now
     if (resourceType === 'achievements') {
-        resourceContentList.innerHTML = `<p>This section will track and display successful completion of milestones or challenging topics in ${unit}.</p>`;
+        resourceContentList.innerHTML = `<p>The **Achievements** section for **${unit.toUpperCase()}** will track and display user milestones (e.g., solved past papers, high scores).</p>`;
         uploadFormArea.innerHTML = '';
         return;
     }
 
-    // Display Upload Form (Only for Learning Materials and Past Papers)
+    // Display Upload Form (For Learning Materials and Past Papers)
     if (auth.currentUser && (resourceType === 'learning' || resourceType === 'pastpapers')) {
         const typeLabel = resourceType === 'learning' ? 'Learning Link' : 'Past Paper Link';
         uploadFormArea.innerHTML = `
@@ -240,7 +230,6 @@ function handleResourceSection(unit, resourceType) {
             <p id="resource-upload-error" class="error-message"></p>
         `;
 
-        // Attach event listener for the dynamic form
         document.getElementById('resource-upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('resource-title').value;
@@ -257,7 +246,7 @@ function handleResourceSection(unit, resourceType) {
                     authorEmail: auth.currentUser.email,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });
-                e.target.reset(); // Clear form on success
+                e.target.reset(); 
                 // Re-fetch resources to update the list immediately
                 fetchResources(unit, resourceType, resourceContentList); 
 
@@ -270,13 +259,9 @@ function handleResourceSection(unit, resourceType) {
          uploadFormArea.innerHTML = '<p>Log in to submit new resources.</p>';
     }
 
-    // Fetch and display existing resources
     fetchResources(unit, resourceType, resourceContentList);
 }
 
-/**
- * Fetches and displays links from the 'resources' collection.
- */
 function fetchResources(unit, resourceType, containerElement) {
     containerElement.innerHTML = '<p>Fetching links...</p>';
 
@@ -285,7 +270,7 @@ function fetchResources(unit, resourceType, containerElement) {
       .where("type", "==", resourceType)
       .orderBy("createdAt", "desc")
       .onSnapshot(snapshot => {
-        containerElement.innerHTML = ''; // Clear loading message
+        containerElement.innerHTML = ''; 
 
         if (snapshot.empty) {
             containerElement.innerHTML = `<p>No ${resourceType} links found for ${unit} yet. Be the first to submit one!</p>`;
@@ -323,30 +308,61 @@ closeAuthModal.addEventListener('click', () => {
     authSection.style.display = 'none';
 });
 
-document.getElementById('close-auth-modal').addEventListener('click', () => {
-    authSection.style.display = 'none';
+// User Registration
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    authError.textContent = '';
+    const email = e.target['register-email'].value;
+    const password = e.target['register-password'].value;
+
+    try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        alert('Registration successful! You are now logged in.');
+        authSection.style.display = 'none'; 
+    } catch (error) {
+        console.error("Registration error:", error);
+        authError.textContent = `Registration Failed: ${error.message}`;
+    }
 });
 
-// User Registration & Login forms remain the same as previous versions
+// User Login
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    authError.textContent = '';
+    const email = e.target['login-email'].value;
+    const password = e.target['login-password'].value;
+
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        alert('Login successful!');
+        authSection.style.display = 'none'; 
+    } catch (error) {
+        console.error("Login error:", error);
+        authError.textContent = `Login Failed: ${error.message}`;
+    }
+});
+
 
 // --- INITIALIZATION ---
-// Start loading data when the script runs
+
+// Checks if the user is logged in and updates UI on page load/login/logout
 auth.onAuthStateChanged(user => {
-    // This handler will automatically run on page load and every login/logout
     if (user) {
         // User is signed in
         authButton.textContent = `Logout (${user.email.split('@')[0]})`;
         authButton.onclick = () => auth.signOut();
+        newTopicSection.style.display = 'block'; // Show topic form
     } else {
         // User is signed out
         authButton.textContent = 'Login / Register';
         authButton.onclick = () => authSection.style.display = 'flex';
+        newTopicSection.style.display = 'none'; // Hide topic form
     }
-    
-    // Ensure the default view is shown
-    switchContent(discussionForum);
 });
 
 // Initial calls
 fetchTopics();
-fetchAnnouncements(); 
+fetchAnnouncements();
+// Ensure the discussion forum is the initial active view when the page loads
+switchContent(document.getElementById('discussion-forum')); 
+            
