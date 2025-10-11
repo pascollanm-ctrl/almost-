@@ -3,121 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discussion Portal & Resource Hub</title>
+    <title>Clinical Medicine Resource Hub</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>Discussion Portal & Resource Hub</h1>
+            <h1>Clinical Resource Hub</h1>
             <nav>
-                <button id="auth-button">Login / Register</button>
+                <button id="auth-button" class="btn btn-secondary">Login / Register</button>
             </nav>
         </div>
     </header>
 
-    <div id="content-wrapper" class="container">
-        <aside id="sidebar-menu">
-            <h2>Resources & Units</h2>
-            <ul id="resource-nav">
-                <li>
-                    <a href="#" class="unit-toggle" data-unit="biochemistry">Clinical Medicine 1: Biochemistry</a>
-                    <ul class="submenu" id="biochemistry-menu">
-                        <li><a href="#" data-section="biochemistry-objectives">Objectives</a></li>
-                        <li><a href="#" data-section="biochemistry-learning">Learning Materials (Links)</a></li>
-                        <li><a href="#" data-section="biochemistry-pastpapers">Past Papers</a></li>
-                        <li><a href="#" data-section="biochemistry-achievements">Achievements</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#" class="unit-toggle" data-unit="physiology">Clinical Medicine 1: Physiology</a>
-                    <ul class="submenu" id="physiology-menu">
-                        <li><a href="#" data-section="physiology-objectives">Objectives</a></li>
-                        <li><a href="#" data-section="physiology-learning">Learning Materials (Links)</a></li>
-                        <li><a href="#" data-section="physiology-pastpapers">Past Papers</a></li>
-                        <li><a href="#" data-section="physiology-achievements">Achievements</a></li>
-                    </ul>
-                </li>
-                 <li>
-                    <a href="#" class="unit-toggle" data-unit="anatomy">Anatomy (Embryology, Histology & General)</a>
-                    <ul class="submenu" id="anatomy-menu">
-                        <li><a href="#" data-section="anatomy-objectives">Objectives</a></li>
-                        <li><a href="#" data-section="anatomy-learning">Learning Materials (Links)</a></li>
-                        <li><a href="#" data-section="anatomy-pastpapers">Past Papers</a></li>
-                        <li><a href="#" data-section="anatomy-achievements">Achievements</a></li>
-                    </ul>
-                </li>
-                 <li>
-                    <a href="#" class="unit-toggle" data-unit="nursingskills">Nursing Skills</a>
-                    <ul class="submenu" id="nursingskills-menu">
-                        <li><a href="#" data-section="nursingskills-objectives">Objectives</a></li>
-                        <li><a href="#" data-section="nursingskills-learning">Learning Materials (Links)</a></li>
-                        <li><a href="#" data-section="nursingskills-pastpapers">Past Papers</a></li>
-                        <li><a href="#" data-section="nursingskills-achievements">Achievements</a></li>
-                    </ul>
-                </li>
-            </ul>
+    <main class="container hidden-content" id="app-main-content">
+        
+        <aside id="sidebar">
+            <div id="user-info"></div>
+            <nav class="resource-nav">
+                <a href="#discussion-view" class="nav-item active">Discussions & Forum</a>
+                <a href="#announcement-view" class="nav-item">Announcements</a>
+                
+                <h3 class="nav-title">Academic Units 🩺</h3>
+                <button id="units-button" class="nav-item btn-primary-outline">Select Unit & Resources</button>
+                
+                <a href="#admin-upload-view" id="admin-link" class="nav-item hidden">Admin Upload ⚙️</a>
+            </nav>
         </aside>
 
-        <main id="main-content">
-            <section id="announcements-section" class="content-block active">
-                <h2>Member Announcements 📣</h2>
-                <div id="announcement-feed">
-                    <p>Welcome! Use this area to post general messages, study group invites, or quick updates.</p>
-                </div>
-                <form id="new-announcement-form">
-                    <textarea id="announcement-text" placeholder="Post a new announcement..." rows="2" required></textarea>
-                    <button type="submit">Post Announcement</button>
-                </form>
-            </section>
+        <section id="content-area">
 
-            <hr>
-            
-            <section id="discussion-forum" class="content-block">
-                <h2>Active Discussions (Forum)</h2>
+            <div id="discussion-view" class="content-panel active-panel">
+                <h2>Discussion Forum</h2>
                 <section id="new-topic-section">
                     <h3>Start a New Topic</h3>
-                    <form id="new-topic-form">
+                    <form id="new-topic-form" class="form-card">
                         <input type="text" id="topic-title" placeholder="Topic Title" required>
-                        <textarea id="topic-content" placeholder="What's on your mind?" rows="5" required></textarea>
-                        <button type="submit">Post Topic</button>
+                        <textarea id="topic-content" placeholder="Type your discussion post..." rows="4" required></textarea>
+                        <button type="submit" class="btn btn-primary">Post Topic</button>
                         <p id="topic-post-error" class="error-message"></p>
                     </form>
                 </section>
                 <section id="discussion-list">
                     </section>
-            </section>
-            
-            <section id="resource-display-area" class="content-block">
-                </section>
-        </main>
-    </div>
+            </div>
 
-    <section id="auth-section" class="modal">
+            <div id="announcement-view" class="content-panel">
+                <h2>Community Announcements 📢</h2>
+                <section id="new-announcement-section">
+                    <h3>Post an Announcement</h3>
+                    <form id="new-announcement-form" class="form-card">
+                        <input type="text" id="announcement-title" placeholder="Announcement Title" required>
+                        <textarea id="announcement-content" placeholder="Details of the announcement..." rows="3" required></textarea>
+                        <button type="submit" class="btn btn-accent">Publish Announcement</button>
+                    </form>
+                </section>
+                <section id="announcement-list">
+                    </section>
+            </div>
+
+            <div id="resource-view" class="content-panel">
+                <h2 id="resource-view-title">Unit Resources</h2>
+                <div id="resource-content-display">
+                    <p>Please use the **"Select Unit & Resources"** button in the sidebar to choose content.</p>
+                </div>
+            </div>
+            
+            <div id="admin-upload-view" class="content-panel">
+                <h2>Admin Resource Upload ⚙️</h2>
+                <section id="admin-upload-form-section">
+                    <p>Admin tools will be built here to upload Past Papers, Objectives, and Learning Materials to the database.</p>
+                    <form id="admin-upload-form" class="form-card">
+                        <label for="upload-unit">Select Unit:</label>
+                        <select id="upload-unit" required>
+                            <option value="">-- Choose Unit --</option>
+                            <option value="biochemistry">1. Biochemistry</option>
+                            <option value="physiology">2. Physiology</option>
+                            <option value="anatomy">3. Anatomy</option>
+                            <option value="nursing-skills">4. Nursing Skills</option>
+                        </select>
+                        <label for="upload-type">Resource Type:</label>
+                        <select id="upload-type" required>
+                            <option value="">-- Choose Type --</option>
+                            <option value="past-papers">Past Papers</option>
+                            <option value="learning-materials">Learning Materials (Link)</option>
+                            <option value="objectives">Objectives (Text)</option>
+                        </select>
+                        <input type="text" id="upload-title" placeholder="Resource Title" required>
+                        <textarea id="upload-data" placeholder="Paste URL/Text/File content here" rows="5" required></textarea>
+                        <button type="submit" class="btn btn-warning">Upload Resource</button>
+                    </form>
+                </section>
+            </div>
+
+        </section>
+    </main>
+
+    <section id="auth-modal" class="modal">
         <div class="modal-content">
-            <h2>User Authentication</h2>
+            <h2>Access the Hub</h2>
             <form id="login-form">
                 <h3>Login</h3>
                 <input type="email" id="login-email" placeholder="Email" required>
                 <input type="password" id="login-password" placeholder="Password" required>
-                <button type="submit">Login</button>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <p class="auth-message-link" id="switch-to-register">Need an account? Register here.</p>
             </form>
-            <form id="register-form">
+            <form id="register-form" class="hidden">
                 <h3>Register</h3>
                 <input type="email" id="register-email" placeholder="Email" required>
-                <input type="password" id="register-password" placeholder="Password" required>
-                <button type="submit">Register</button>
+                <input type="password" id="register-password" placeholder="Password (min 6 chars)" required>
+                <button type="submit" class="btn btn-accent">Register</button>
+                <p class="auth-message-link" id="switch-to-login">Already have an account? Log in.</p>
             </form>
             <p id="auth-error" class="error-message"></p>
-            <button id="close-auth-modal">Close</button>
+            <button id="close-auth-modal" class="close-btn">&times;</button>
         </div>
     </section>
 
+    <section id="unit-selection-modal" class="modal">
+        <div class="modal-content small-modal">
+            <h2>Select Clinical Unit</h2>
+            <div id="unit-list">
+                <button class="unit-select-btn btn-primary-outline" data-unit="biochemistry">1. Biochemistry</button>
+                <button class="unit-select-btn btn-primary-outline" data-unit="physiology">2. Physiology</button>
+                <button class="unit-select-btn btn-primary-outline" data-unit="anatomy">3. Anatomy (Embryology, Histology, Gen. Anatomy)</button>
+                <button class="unit-select-btn btn-primary-outline" data-unit="nursing-skills">4. Nursing Skills</button>
+            </div>
+            <button class="close-btn" data-close-modal="unit-selection-modal">&times;</button>
+        </div>
+    </section>
+
+    <section id="resource-selection-modal" class="modal">
+        <div class="modal-content small-modal">
+            <h2 id="resource-modal-title"></h2>
+            <p>What resources do you need?</p>
+            <div id="resource-list">
+                <button class="resource-select-btn btn-accent-outline" data-resource-type="objectives">Learning Objectives</button>
+                <button class="resource-select-btn btn-accent-outline" data-resource-type="past-papers">Past Papers</button>
+                <button class="resource-select-btn btn-accent-outline" data-resource-type="learning-materials">Learning Materials (Links)</button>
+                <button class="resource-select-btn btn-accent-outline" data-resource-type="achievement">Achievement & Milestones</button>
+            </div>
+            <button class="close-btn" data-close-modal="resource-selection-modal">&times;</button>
+        </div>
+    </section>
 
     <footer>
         <div class="container">
-            <p>&copy; 2025 Discussion Portal</p>
+            <p>&copy; 2025 Clinical Resource Hub</p>
         </div>
     </footer>
 
@@ -125,6 +159,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="script.js"></script>
+
 </body>
-                            </html>
-    
+                </html>
