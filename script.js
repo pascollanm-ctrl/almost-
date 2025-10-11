@@ -28,7 +28,6 @@ const db = firebase.firestore();
 const appMainContent = document.getElementById('app-main-content');
 const authModal = document.getElementById('auth-modal');
 const authButton = document.getElementById('auth-button');
-const closeAuthModal = document.getElementById('close-auth-modal');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const switchToRegister = document.getElementById('switch-to-register');
@@ -45,6 +44,7 @@ const announcementList = document.getElementById('announcement-list');
 const unitsButton = document.getElementById('units-button');
 const unitSelectionModal = document.getElementById('unit-selection-modal');
 const resourceSelectionModal = document.getElementById('resource-selection-modal');
+const closeButtons = document.querySelectorAll('.close-btn');
 
 // --- HELPER FUNCTIONS ---
 
@@ -66,7 +66,7 @@ function switchView(viewId) {
         link.classList.remove('active');
     });
     // Highlight the active link, excluding the button
-    if (viewId !== 'resource-view') {
+    if (viewId === 'discussion-view' || viewId === 'announcement-view' || viewId === 'admin-upload-view') {
         document.querySelector(`.nav-item[href="#${viewId}"]`)?.classList.add('active');
     }
 }
@@ -88,12 +88,18 @@ switchToLogin.addEventListener('click', () => {
 
 // Show Auth Modal
 authButton.addEventListener('click', () => {
-    authModal.style.display = 'flex';
+    // If the button says 'Logout', sign out instead
+    if (authButton.textContent === 'Logout') {
+        auth.signOut();
+    } else {
+        showModal('auth-modal');
+    }
 });
 
-// Close Auth Modal
-document.querySelectorAll('.close-btn').forEach(btn => {
+// Close Modals
+closeButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
+        // Get the modal ID either from the data-attribute or assume auth-modal
         const modalId = e.target.dataset.closeModal || 'auth-modal';
         hideModal(modalId);
     });
@@ -108,7 +114,8 @@ registerForm.addEventListener('submit', async (e) => {
 
     try {
         await auth.createUserWithEmailAndPassword(email, password);
-        // UI updated by onAuthStateChanged
+        // Success handled by onAuthStateChanged
+        alert("Registration successful! Welcome to the Hub."); 
     } catch (error) {
         console.error("Registration error:", error);
         authError.textContent = `Registration Failed: ${error.message}`;
@@ -124,10 +131,10 @@ loginForm.addEventListener('submit', async (e) => {
 
     try {
         await auth.signInWithEmailAndPassword(email, password);
-        // UI updated by onAuthStateChanged
+        // Success handled by onAuthStateChanged
     } catch (error) {
         console.error("Login error:", error);
-        // IMPROVEMENT: Clear and specific error message for wrong credentials
+        // Clear and specific error message for wrong credentials
         authError.textContent = "Error: Invalid email or password. Please try again.";
     }
 });
@@ -139,10 +146,9 @@ auth.onAuthStateChanged(user => {
         hideModal('auth-modal');
         appMainContent.classList.remove('hidden-content');
         authButton.textContent = 'Logout';
-        authButton.onclick = () => auth.signOut();
         
         // Show User Info
-        userInfoDisplay.innerHTML = `<p>Welcome, <strong>${user.email}</strong>!</p>`;
+        userInfoDisplay.innerHTML = `<p>Logged in as: <strong>${user.email}</strong></p>`;
 
         // Check for Admin status and show Admin link
         if (user.email === ADMIN_EMAIL) {
@@ -160,15 +166,18 @@ auth.onAuthStateChanged(user => {
         // Logged Out State
         appMainContent.classList.add('hidden-content');
         authButton.textContent = 'Login / Register';
-        authButton.onclick = () => showModal('auth-modal');
+        
         userInfoDisplay.innerHTML = '';
         adminLink.classList.add('hidden');
-        // Automatically show login modal if not already visible
-        if (window.location.hash === '') showModal('auth-modal');
+        
+        // Ensure forms are reset to default (login view)
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        authError.textContent = '';
     }
 });
 
-// --- DISCUSSION TOPICS (Logic from previous step) ---
+// --- DISCUSSION TOPICS ---
 
 newTopicForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -225,7 +234,7 @@ function fetchTopics() {
     });
 }
 
-// --- ANNOUNCEMENTS (New Implementation) ---
+// --- ANNOUNCEMENTS ---
 
 newAnnouncementForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -247,7 +256,6 @@ newAnnouncementForm.addEventListener('submit', async (e) => {
         });
         
         newAnnouncementForm.reset();
-        // Since we are using onSnapshot, fetchAnnouncements will update automatically
 
     } catch (error) {
         alert(`Posting failed: ${error.message}`);
@@ -341,6 +349,7 @@ const adminUploadForm = document.getElementById('admin-upload-form');
 adminUploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
+    // Check again here to be safe
     if (!user || user.email !== ADMIN_EMAIL) {
         alert("Authorization denied. You must be the admin to upload resources.");
         return;
@@ -349,7 +358,7 @@ adminUploadForm.addEventListener('submit', async (e) => {
     const unit = e.target['upload-unit'].value;
     const type = e.target['upload-type'].value;
     const title = e.target['upload-title'].value;
-    const data = e.target['upload-data'].value; // Could be link or text
+    const data = e.target['upload-data'].value; 
 
     if (!unit || !type || !title || !data) {
         alert("Please fill in all fields for the upload.");
@@ -372,3 +381,6 @@ adminUploadForm.addEventListener('submit', async (e) => {
         alert(`Upload Failed: ${error.message}`);
     }
 });
+
+// --- INITIAL VIEW SETUP ---
+// We don't call switchView here because the onAuthStateChanged listener handles the initial view after checking login status.
