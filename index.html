@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinical Medicine Resource Hub</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom Tailwind Configuration (using Inter font) */
@@ -18,6 +19,8 @@
         .btn-primary { background-color: var(--color-primary); }
         .btn-accent { background-color: var(--color-accent); }
         .btn-warning { background-color: var(--color-warning); }
+        .btn-ai { background-color: #A855F7; /* Violet-500 */ } /* New AI button color */
+        .btn-ai:hover { background-color: #9333ea; }
 
         .btn-primary-outline { border: 2px solid var(--color-primary); color: var(--color-primary); }
         .btn-accent-outline { border: 2px solid var(--color-accent); color: var(--color-accent); }
@@ -26,15 +29,17 @@
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .container-app { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 
-        /* Modal styling */
+        /* Modal styling - Centered and full-screen overlay */
         .modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background-color: rgba(0, 0, 0, 0.7); z-index: 1000; 
             display: none; justify-content: center; align-items: center; 
         }
         .modal-content { 
+            /* Increased max-width for better login experience */
             background-color: white; padding: 2rem; border-radius: 1rem; 
-            width: 90%; max-width: 500px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            width: 90%; max-width: 550px; 
+            position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         .small-modal { max-width: 400px; }
         .close-btn { 
@@ -72,14 +77,41 @@
         .form-card, .discussion-item, .announcement-item, .resource-item {
             @apply bg-white p-4 rounded-xl shadow-lg mb-4 border border-gray-100;
         }
+
+        /* Markdown rendering utility for LLM output */
+        .prose h1, .prose h2, .prose h3 { font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+        .prose ul { list-style: disc; margin-left: 1.5em; }
+        .prose p { margin-bottom: 1em; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container-app flex justify-between items-center py-4">
             <h1 class="text-2xl font-bold text-gray-800">Clinical Resource Hub</h1>
-            <nav>
+            <nav class="relative">
+                <!-- Authentication button for logged out state -->
                 <button id="auth-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">Login / Register</button>
+                
+                <!-- User Menu for logged in state (Hidden by default) -->
+                <div id="user-menu-container" class="hidden">
+                    <button id="user-menu-toggle" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                         <!-- Profile Icon (UserCircle SVG) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-700"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </button>
+
+                    <div id="user-dropdown-menu" class="absolute hidden right-0 mt-3 w-64 bg-white rounded-xl shadow-2xl overflow-hidden ring-1 ring-black ring-opacity-5">
+                        <div class="p-4 border-b border-gray-100">
+                            <p class="text-sm font-semibold text-gray-800">Current User:</p>
+                            <!-- User ID/Email is displayed here -->
+                            <p id="display-user-id" class="font-mono text-xs bg-gray-100 p-1 rounded mt-1 text-gray-600 truncate">Loading...</p>
+                        </div>
+                        <div class="p-2">
+                             <button id="logout-button" class="w-full text-left flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50 transition duration-150">
+                                <span class="mr-2">🚪</span> Log Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </nav>
         </div>
     </header>
@@ -87,10 +119,6 @@
     <main class="container-app hidden" id="app-main-content">
         
         <aside id="sidebar" class="p-4 bg-white rounded-xl shadow-lg h-fit">
-            <div id="user-info" class="mb-6 pb-4 border-b border-gray-200">
-                <p class="text-sm text-gray-600">User ID: <span id="display-user-id" class="font-mono text-xs bg-gray-100 p-1 rounded">Loading...</span></p>
-                <button id="logout-button" class="mt-2 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">Logout</button>
-            </div>
             <nav class="resource-nav space-y-2">
                 <a href="#discussion-view" class="nav-item flex items-center p-3 rounded-lg text-lg font-medium bg-primary text-white shadow-md active-nav transition duration-150" data-view="discussion-view">
                     <span class="mr-2">💬</span> Discussions & Forum
@@ -110,6 +138,7 @@
 
         <section id="content-area" class="bg-white p-6 rounded-xl shadow-lg">
 
+            <!-- DISCUSSION VIEW -->
             <div id="discussion-view" class="content-panel active-panel">
                 <h2 class="text-3xl font-extrabold mb-6 text-gray-800">Discussion Forum</h2>
                 <section id="new-topic-section" class="mb-8">
@@ -124,9 +153,11 @@
                 <section id="discussion-list">
                     <h3 class="text-2xl font-semibold mb-4 text-gray-700">Latest Discussions</h3>
                     <p class="text-gray-500" id="discussion-loading">Loading discussions...</p>
-                    </section>
+                    <!-- Discussion items will be rendered here -->
+                </section>
             </div>
 
+            <!-- ANNOUNCEMENT VIEW -->
             <div id="announcement-view" class="content-panel">
                 <h2 class="text-3xl font-extrabold mb-6 text-gray-800">Community Announcements 📢</h2>
                 <section id="new-announcement-section" class="mb-8 hidden">
@@ -139,16 +170,23 @@
                 </section>
                 <section id="announcement-list">
                     <p class="text-gray-500" id="announcement-loading">Loading announcements...</p>
-                    </section>
+                    <!-- Announcement items will be rendered here -->
+                </section>
             </div>
 
+            <!-- RESOURCE VIEW -->
             <div id="resource-view" class="content-panel">
                 <h2 id="resource-view-title" class="text-3xl font-extrabold mb-6 text-gray-800">Unit Resources</h2>
                 <div id="resource-content-display">
                     <p class="text-lg text-gray-600 p-6 bg-gray-100 rounded-lg">Please use the **"Select Unit & Resources"** button in the sidebar to choose content.</p>
                 </div>
+                <!-- AI Study Guide Output Area -->
+                <div id="ai-study-guide-output" class="mt-8">
+                    <!-- LLM output will be injected here -->
+                </div>
             </div>
             
+            <!-- ADMIN UPLOAD VIEW -->
             <div id="admin-upload-view" class="content-panel">
                 <h2 class="text-3xl font-extrabold mb-6 text-yellow-700">Admin Resource Upload ⚙️</h2>
                 <section id="admin-upload-form-section">
@@ -159,7 +197,11 @@
                             <option value="">-- Choose Unit --</option>
                             <option value="biochemistry">1. Biochemistry</option>
                             <option value="physiology">2. Physiology</option>
-                            <option value="anatomy">3. Anatomy</option>
+                            <!-- ANATOMY SUB-UNITS START HERE -->
+                            <option value="anatomy-general">3A. General Anatomy</option>
+                            <option value="anatomy-embryology">3B. Embryology</option>
+                            <option value="anatomy-histology">3C. Histology</option>
+                            <!-- ANATOMY SUB-UNITS END HERE -->
                             <option value="nursing-skills">4. Nursing Skills</option>
                         </select>
 
@@ -182,6 +224,7 @@
         </section>
     </main>
 
+    <!-- AUTH MODAL -->
     <section id="auth-modal" class="modal">
         <div class="modal-content">
             <h2 class="text-3xl font-bold mb-4 text-gray-800">Access the Hub</h2>
@@ -204,24 +247,31 @@
         </div>
     </section>
 
+    <!-- UNIT SELECTION MODAL -->
     <section id="unit-selection-modal" class="modal">
         <div class="modal-content small-modal">
             <h2 class="text-2xl font-bold mb-4">Select Clinical Unit</h2>
             <div id="unit-list" class="space-y-3">
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="biochemistry">1. Biochemistry</button>
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="physiology">2. Physiology</button>
-                <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="anatomy">3. Anatomy (Embryology, Histology, Gen. Anatomy)</button>
+                <!-- ANATOMY SUB-UNITS START HERE -->
+                <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="anatomy-general">3A. General Anatomy</button>
+                <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="anatomy-embryology">3B. Embryology</button>
+                <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="anatomy-histology">3C. Histology</button>
+                <!-- ANATOMY SUB-UNITS END HERE -->
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="nursing-skills">4. Nursing Skills</button>
             </div>
             <button class="close-btn" data-close-modal="unit-selection-modal">&times;</button>
         </div>
     </section>
 
+    <!-- RESOURCE SELECTION MODAL -->
     <section id="resource-selection-modal" class="modal">
         <div class="modal-content small-modal">
             <h2 id="resource-modal-title" class="text-2xl font-bold mb-2"></h2>
             <p class="text-gray-600 mb-4">What resources do you need?</p>
             <div id="resource-list" class="space-y-3">
+                <!-- These buttons now automatically serve the selected Anatomy sub-unit or main unit -->
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="objectives">Learning Objectives</button>
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="past-papers">Past Papers</button>
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="learning-materials">Learning Materials (Links)</button>
@@ -233,29 +283,31 @@
 
     <footer class="mt-8 py-4 bg-gray-800 text-white">
         <div class="container-app text-center">
-            <p class="text-sm">&copy; 2025 Clinical Resource Hub. Powered by Firebase.</p>
+            <p class="text-sm">&copy; 2025 Clinical Resource Hub. Powered by Firebase and Gemini AI.</p>
         </div>
     </footer>
 
+    <!-- Firebase & LLM SDK Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, query, onSnapshot, serverTimestamp, addDoc, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, deleteDoc, collection, query, onSnapshot, serverTimestamp, addDoc, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
         // IMPORTANT: Environment variables from the platform are used here.
-        // If running locally, you must define __app_id, __firebase_config, and __initial_auth_token.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'discussion-group-2e4e3';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : JSON.stringify({
-            apiKey: "AIzaSyChZG0b4IiGy4DMkBnuvivTW_Q48fJ8uEg", // Your provided API Key
+            apiKey: "AIzaSyChZG0b4IiGy4DMkBnuvivTW_Q48fJ8uEg", 
             authDomain: "discussion-group-2e4e3.firebaseapp.com",
             projectId: "discussion-group-2e4e3",
             storageBucket: "discussion-group-2e4e3.firebasestorage.app",
             messagingSenderId: "992748744659",
             appId: "1:992748744659:web:3538b81190f5fb01f18926"
         }));
+        // --- Admin Email is defined here for permissions checks ---
         const ADMIN_EMAIL = "pascollanm@gmail.com"; 
-        
+        const API_KEY = ""; // Placeholder for LLM API Key injection
+
         // --- Firebase Initialization ---
         setLogLevel('Debug');
         const app = initializeApp(firebaseConfig);
@@ -270,12 +322,19 @@
         const unitSelectionModal = document.getElementById('unit-selection-modal');
         const resourceSelectionModal = document.getElementById('resource-selection-modal');
         const mainContent = document.getElementById('app-main-content');
+        
+        // Header UI elements
         const authButton = document.getElementById('auth-button');
+        const userMenuContainer = document.getElementById('user-menu-container');
+        const userMenuToggle = document.getElementById('user-menu-toggle');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
         const logoutButton = document.getElementById('logout-button');
-        const adminLink = document.getElementById('admin-link');
         const displayUserId = document.getElementById('display-user-id');
+
+        const adminLink = document.getElementById('admin-link');
         const resourceViewTitle = document.getElementById('resource-view-title');
         const resourceContentDisplay = document.getElementById('resource-content-display');
+        const aiStudyGuideOutput = document.getElementById('ai-study-guide-output'); 
 
         // Forms and Lists
         const loginForm = document.getElementById('login-form');
@@ -284,46 +343,315 @@
         const newTopicForm = document.getElementById('new-topic-form');
         const newAnnouncementSection = document.getElementById('new-announcement-section');
         const newAnnouncementForm = document.getElementById('new-announcement-form');
-        const adminUploadForm = document.getElementById('admin-upload-form');
         const discussionList = document.getElementById('discussion-list');
         const announcementList = document.getElementById('announcement-list');
-        const uploadStatus = document.getElementById('upload-status');
         
-        // --- Utility Functions ---
-
-        const showModal = (modalElement) => {
-            modalElement.style.display = 'flex';
+        // Unit Map (Updated for Anatomy Sub-units)
+        const unitDisplayMap = {
+            'biochemistry': '1. Biochemistry',
+            'physiology': '2. Physiology',
+            'anatomy-general': '3A. General Anatomy',
+            'anatomy-embryology': '3B. Embryology (Anatomy)',
+            'anatomy-histology': '3C. Histology (Anatomy)',
+            'nursing-skills': '4. Nursing Skills'
         };
 
-        const hideModal = (modalElement) => {
-            modalElement.style.display = 'none';
-        };
+        // --- Deletion Helper Functions (The corrected part for Admin/Author control) ---
 
-        const switchView = (targetViewId) => {
-            document.querySelectorAll('.content-panel').forEach(panel => {
-                panel.classList.remove('active-panel');
-                panel.style.display = 'none';
-            });
-            document.getElementById(targetViewId).classList.add('active-panel');
-            document.getElementById(targetViewId).style.display = 'block';
-
-            // Update nav item active state
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('bg-primary', 'text-white', 'active-nav');
-                item.classList.add('text-gray-700', 'hover:bg-gray-100');
-            });
-            const activeNav = document.querySelector(`.nav-item[data-view="${targetViewId}"]`);
-            if (activeNav) {
-                 activeNav.classList.add('bg-primary', 'text-white', 'active-nav');
-                 activeNav.classList.remove('text-gray-700', 'hover:bg-gray-100');
+        const deleteDocument = async (collectionPath, docId) => {
+            try {
+                await deleteDoc(doc(db, collectionPath, docId));
+                console.log(`Document ${docId} deleted successfully from ${collectionPath}`);
+                // UI refresh is handled by onSnapshot listeners
+            } catch (error) {
+                console.error(`Error deleting document ${docId}:`, error);
+                // In a real app, this would show a failure message on screen.
+                console.error("Failed to delete document. Check permissions/console.");
             }
         };
 
-        // --- Real-time Data Listeners ---
+        const deleteDiscussion = (docId) => {
+            const collectionPath = `/artifacts/${appId}/public/data/discussions`;
+            deleteDocument(collectionPath, docId);
+        };
+
+        const deleteAnnouncement = (docId) => {
+            if (!isAdmin) {
+                console.warn('Access Denied: Only admins can delete announcements.');
+                return;
+            }
+            const collectionPath = `/artifacts/${appId}/public/data/announcements`;
+            deleteDocument(collectionPath, docId);
+        };
+
+        const deleteResource = (docId) => {
+            if (!isAdmin) {
+                console.warn('Access Denied: Only admins can delete resources.');
+                return;
+            }
+            const collectionPath = `/artifacts/${appId}/public/data/unit_resources`;
+            deleteDocument(collectionPath, docId);
+        };
+
+
+        // --- LLM Utility Functions ---
+
+        const fetchWithRetry = async (url, options, maxRetries = 5) => {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+        };
+
+        const markdownToHtml = (markdown) => {
+            // Simple markdown converter for basic formatting (list, bold, headers)
+            let html = markdown;
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = `<p>${html}</p>`;
+            html = html.replace(/<li>.*<\/li>/g, match => `<ul>${match.replace(/<\/li><li>/g, '</li>\n<li>')}</ul>`);
+            return html;
+        };
+
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        const pcmToWav = (pcm16, sampleRate = 24000) => {
+            const numChannels = 1;
+            const bytesPerSample = 2; // 16-bit PCM
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataLength = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataLength);
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            function writeString(s) {
+                for (let i = 0; i < s.length; i++) {
+                    view.setUint8(offset + i, s.charCodeAt(i));
+                }
+                offset += s.length;
+            }
+
+            function writeUint32(val) {
+                view.setUint32(offset, val, true);
+                offset += 4;
+            }
+
+            function writeUint16(val) {
+                view.setUint16(offset, val, true);
+                offset += 2;
+            }
+
+            // RIFF chunk
+            writeString('RIFF');
+            writeUint32(36 + dataLength); // ChunkSize
+            writeString('WAVE');
+
+            // fmt chunk
+            writeString('fmt ');
+            writeUint32(16); // Subchunk1Size
+            writeUint16(1); // AudioFormat (1=PCM)
+            writeUint16(numChannels);
+            writeUint32(sampleRate);
+            writeUint32(byteRate);
+            writeUint16(blockAlign);
+            writeUint16(bytesPerSample * 8); // BitsPerSample (16)
+
+            // data chunk
+            writeString('data');
+            writeUint32(dataLength);
+
+            // Write PCM data
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        };
+        
+        const generateAndPlayTTS = async (text, buttonElement) => {
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = 'Generating...';
+            buttonElement.disabled = true;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: text }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+
+            try {
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    
+                    buttonElement.textContent = 'Playing... 🎧';
+                    audio.play();
+                    audio.onended = () => {
+                        buttonElement.textContent = originalText;
+                        buttonElement.disabled = false;
+                        URL.revokeObjectURL(audioUrl);
+                    };
+                    audio.onerror = () => {
+                        buttonElement.textContent = 'Playback Failed ❌';
+                        buttonElement.disabled = false;
+                        URL.revokeObjectURL(audioUrl);
+                    }
+                } else {
+                    console.error("Invalid TTS response structure or data.");
+                    buttonElement.textContent = 'Error (TTS failed) ❌';
+                }
+
+            } catch (error) {
+                console.error("TTS API Call failed:", error);
+                buttonElement.textContent = 'Error (API) ❌';
+            } finally {
+                if (buttonElement.textContent.includes('Generating') || buttonElement.textContent.includes('Error')) {
+                    setTimeout(() => {
+                         if (!buttonElement.textContent.includes('Playing')) {
+                            buttonElement.textContent = originalText;
+                            buttonElement.disabled = false;
+                        }
+                    }, 3000);
+                }
+            }
+        };
+
+        const generateStudyGuide = async (resourceContent, button, outputArea) => {
+            const originalText = button.textContent;
+            button.textContent = 'Generating Study Guide... ⏳';
+            button.classList.add('animate-pulse');
+            button.disabled = true;
+            outputArea.innerHTML = ''; 
+
+            const systemPrompt = "You are an expert Clinical Medicine tutor. Analyze the provided resource (e.g., objectives or past papers) and generate a comprehensive, highly relevant study guide in Markdown format. The guide should include a brief introduction, 3-5 key concepts derived from the content, and 3 high-yield study questions based on the material. Use clear headings and lists. Keep the total output concise, professional, and directly useful for medical students.";
+            const userQuery = `Generate a high-yield study guide based on the following resource content:\n---\n${resourceContent}\n---`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }], // Enable grounding for better context
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            
+            try {
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Could not generate content. Please try again.";
+                const sources = result?.candidates?.[0]?.groundingMetadata?.groundingAttributions || [];
+
+                outputArea.innerHTML = `
+                    <div class="bg-violet-50 p-6 rounded-xl shadow-inner border border-violet-200">
+                        <h3 class="text-2xl font-bold text-violet-700 mb-4 flex items-center">
+                            <span class="mr-2">✨</span> AI-Generated Study Guide
+                        </h3>
+                        <div class="prose max-w-none text-gray-800">
+                            ${markdownToHtml(generatedText)}
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-violet-200">
+                            <p class="text-xs font-semibold text-gray-500 mb-1">Sources Cited (via Google Search):</p>
+                            <ul class="text-xs list-disc list-inside text-gray-600 space-y-1">
+                                ${sources.map(source => 
+                                    `<li><a href="${source.web.uri}" target="_blank" class="hover:underline text-violet-600">${source.web.title}</a></li>`
+                                ).join('') || '<li>No specific web sources cited.</li>'}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("LLM Generation failed:", error);
+                outputArea.innerHTML = '<p class="text-red-500 p-6 bg-red-50 rounded-lg">Error generating study guide. Please check your network connection or the API key status.</p>';
+            } finally {
+                button.textContent = originalText;
+                button.classList.remove('animate-pulse');
+                button.disabled = false;
+                // Scroll to the output area
+                outputArea.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+
+        // --- Utility Functions ---
+        const showModal = (modalElement) => { modalElement.style.display = 'flex'; };
+        const hideModal = (modalElement) => { modalElement.style.display = 'none'; };
+        const switchView = (targetViewId) => {
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active-panel');
+            });
+            document.getElementById(targetViewId).classList.add('active-panel');
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-primary', 'text-white');
+                item.classList.add('text-gray-700', 'hover:bg-gray-100');
+            });
+            const activeNav = document.querySelector(`.nav-item[data-view="${targetViewId}"]`);
+            if(activeNav) {
+                activeNav.classList.add('bg-primary', 'text-white');
+                activeNav.classList.remove('text-gray-700', 'hover:bg-gray-100');
+            }
+        };
+
+
+        // --- Real-time Data Listeners (Modified to include Delete Buttons) ---
 
         const startDiscussionListener = () => {
             const discussionsRef = collection(db, `/artifacts/${appId}/public/data/discussions`);
-            // Query for real-time updates (no orderBy to prevent index errors)
             const q = query(discussionsRef); 
 
             return onSnapshot(q, (snapshot) => {
@@ -332,7 +660,6 @@
                     discussions.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Sort discussions by timestamp in descending order (newest first)
                 discussions.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
                 discussionList.innerHTML = '';
@@ -346,13 +673,32 @@
                 } else {
                     discussions.forEach(topic => {
                         const date = topic.timestamp ? new Date(topic.timestamp.seconds * 1000).toLocaleString() : 'N/A';
+                        // DELETION CONDITION 1: Check if the current user is the author
+                        const isAuthor = currentUserId === topic.userId;
+                        
                         const item = document.createElement('div');
                         item.className = 'discussion-item hover:shadow-xl transition duration-200';
+                        
+                        // Delete button is only rendered if the user is the author
+                        const deleteBtnHtml = isAuthor ? `
+                            <button data-id="${topic.id}" class="delete-discussion-btn flex-shrink-0 ml-4 text-red-600 hover:bg-red-100 border border-red-300 text-xs font-semibold py-2 px-3 rounded-lg transition duration-150">Delete</button>
+                        ` : '';
+                        
                         item.innerHTML = `
-                            <h4 class="text-xl font-bold text-primary mb-2">${topic.title}</h4>
-                            <p class="text-gray-700 mb-3">${topic.content.substring(0, 200)}...</p>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary mb-2">${topic.title}</h4>
+                                    <p class="text-gray-700 mb-3">${topic.content.substring(0, 200)}${topic.content.length > 200 ? '...' : ''}</p>
+                                </div>
+                                ${deleteBtnHtml}
+                            </div>
                             <p class="text-xs text-gray-400">Posted by ${topic.userName} (${topic.userId.substring(0, 8)}...) on ${date}</p>
                         `;
+
+                        if (isAuthor) {
+                            item.querySelector('.delete-discussion-btn').addEventListener('click', () => deleteDiscussion(topic.id));
+                        }
+                        
                         discussionList.appendChild(item);
                     });
                 }
@@ -372,7 +718,6 @@
                     announcements.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Sort by timestamp descending
                 announcements.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
                 announcementList.innerHTML = '';
@@ -382,13 +727,41 @@
                 } else {
                     announcements.forEach(announcement => {
                         const date = announcement.timestamp ? new Date(announcement.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+                        
                         const item = document.createElement('div');
                         item.className = 'announcement-item border-l-4 border-accent';
+
+                        // DELETION CONDITION 2: Check if the current user is an Admin
+                        const deleteBtnHtml = isAdmin ? `
+                            <button data-id="${announcement.id}" class="delete-announcement-btn flex-shrink-0 ml-4 text-red-600 hover:bg-red-100 border border-red-300 text-xs font-semibold py-2 px-3 rounded-lg transition duration-150">Delete</button>
+                        ` : '';
+                        
                         item.innerHTML = `
-                            <h4 class="text-xl font-bold text-accent mb-1">${announcement.title}</h4>
-                            <p class="text-gray-700 mb-2">${announcement.content}</p>
-                            <p class="text-xs text-gray-400">Published on ${date} by Admin</p>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-xl font-bold text-accent mb-1">${announcement.title}</h4>
+                                    <p class="text-gray-700 mb-2 whitespace-pre-wrap">${announcement.content}</p>
+                                </div>
+                                <div class="flex space-x-2 items-center">
+                                    <button class="read-announcement-btn flex-shrink-0 ml-4 btn-accent-outline text-xs font-semibold py-2 px-3 rounded-lg hover:bg-blue-50 transition duration-150">
+                                        Read Announcement 🔊
+                                    </button>
+                                    ${deleteBtnHtml}
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">Published on ${date} by Admin</p>
                         `;
+                        
+                        const ttsButton = item.querySelector('.read-announcement-btn');
+                        ttsButton.addEventListener('click', () => {
+                            const textToRead = `${announcement.title}. ${announcement.content}`;
+                            generateAndPlayTTS(textToRead, ttsButton);
+                        });
+                        
+                        if (isAdmin) {
+                             item.querySelector('.delete-announcement-btn').addEventListener('click', () => deleteAnnouncement(announcement.id));
+                        }
+
                         announcementList.appendChild(item);
                     });
                 }
@@ -399,11 +772,11 @@
         };
 
         const fetchResources = async (unit, type) => {
-            resourceViewTitle.textContent = `${unit.toUpperCase()} - ${type.replace('-', ' ').toUpperCase()}`;
+            resourceViewTitle.textContent = `${unitDisplayMap[unit] || unit.toUpperCase()} - ${type.replace('-', ' ').toUpperCase()}`;
             resourceContentDisplay.innerHTML = '<p class="text-gray-500 p-6">Loading resources...</p>';
+            aiStudyGuideOutput.innerHTML = ''; 
 
             try {
-                // Resources are stored in a common collection path for sharing
                 const resourcesRef = collection(db, `/artifacts/${appId}/public/data/unit_resources`);
                 const q = query(resourcesRef, 
                     where("unit", "==", unit),
@@ -415,11 +788,10 @@
                 let resources = [];
                 snapshot.forEach(doc => resources.push({ id: doc.id, ...doc.data() }));
 
-                // Sort by title in memory
                 resources.sort((a, b) => a.title.localeCompare(b.title));
 
                 if (resources.length === 0) {
-                    resourceContentDisplay.innerHTML = `<p class="text-lg text-gray-600 p-6 bg-gray-100 rounded-lg">No ${type.replace('-', ' ')} found for ${unit}.</p>`;
+                    resourceContentDisplay.innerHTML = `<p class="text-lg text-gray-600 p-6 bg-gray-100 rounded-lg">No ${type.replace('-', ' ')} found for ${unitDisplayMap[unit]}.</p>`;
                     return;
                 }
 
@@ -428,18 +800,53 @@
                 
                 resources.forEach(resource => {
                     const isLink = resource.type === 'learning-materials';
+                    const isTextResource = resource.type === 'objectives' || resource.type === 'past-papers' || resource.type === 'achievement';
                     const content = isLink 
                         ? `<a href="${resource.data}" target="_blank" class="text-blue-600 hover:underline font-medium">${resource.data}</a>`
                         : `<p class="whitespace-pre-wrap">${resource.data}</p>`;
                     
                     const item = document.createElement('div');
                     item.className = 'resource-item';
+
+                    let aiButtonHtml = '';
+                    let deleteButtonHtml = '';
+                    
+                    // DELETION CONDITION 3: Check if the current user is an Admin
+                    if (isAdmin) {
+                        deleteButtonHtml = `
+                            <button data-id="${resource.id}" class="delete-resource-btn flex-shrink-0 ml-4 text-red-600 hover:bg-red-100 border border-red-300 text-xs font-semibold py-2 px-3 rounded-lg transition duration-150">Delete</button>
+                        `;
+                    }
+
+                    if (isTextResource) {
+                        aiButtonHtml = `
+                            <button data-content-id="${resource.id}" class="generate-guide-btn w-full btn-ai text-white font-bold py-2 px-4 rounded-lg hover:shadow-lg transition duration-200 mt-3">
+                                Generate Study Guide ✨
+                            </button>
+                        `;
+                    }
+
                     item.innerHTML = `
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">${resource.title}</h4>
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${resource.title}</h4>
+                            ${deleteButtonHtml}
+                        </div>
                         ${content}
-                        <p class="text-xs text-gray-400 mt-2">Type: ${resource.type.replace('-', ' ')}</p>
+                        <p class="text-xs text-gray-400 mt-2">Unit: ${unitDisplayMap[resource.unit]} | Type: ${resource.type.replace('-', ' ')}</p>
+                        ${aiButtonHtml}
                     `;
                     container.appendChild(item);
+                    
+                    if (isTextResource) {
+                        const guideButton = item.querySelector('.generate-guide-btn');
+                        guideButton.addEventListener('click', () => {
+                            generateStudyGuide(`Title: ${resource.title}\nContent:\n${resource.data}`, guideButton, aiStudyGuideOutput);
+                        });
+                    }
+                    
+                    if (isAdmin) {
+                         item.querySelector('.delete-resource-btn').addEventListener('click', () => deleteResource(resource.id));
+                    }
                 });
 
             } catch (error) {
@@ -456,33 +863,32 @@
 
         const setupAuth = async () => {
              // Handle initial token sign in
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token.length > 0) {
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+            if (initialAuthToken.length > 0) {
                 try {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+                    await signInWithCustomToken(auth, initialAuthToken);
                 } catch (error) {
                     console.error("Custom token sign-in failed. Attempting anonymous sign-in.", error);
                     await signInAnonymously(auth);
                 }
             } else {
-                // If no custom token is available, sign in anonymously
                 await signInAnonymously(auth);
             }
         };
 
         onAuthStateChanged(auth, (user) => {
-            // Stop any existing listeners before setting up new ones
             if (unsubscribeDiscussions) unsubscribeDiscussions();
             if (unsubscribeAnnouncements) unsubscribeAnnouncements();
             
             if (user) {
-                // User is signed in
                 currentUserId = user.uid;
                 displayUserId.textContent = user.email ? user.email : currentUserId;
                 mainContent.classList.remove('hidden');
-                authButton.style.display = 'none';
-                logoutButton.style.display = 'block';
+                
+                authButton.classList.add('hidden');
+                userMenuContainer.classList.remove('hidden');
 
-                // Check Admin status
+                // *** ADMIN CHECK ***
                 isAdmin = user.email === ADMIN_EMAIL;
                 if (isAdmin) {
                     adminLink.classList.remove('hidden');
@@ -492,39 +898,41 @@
                     newAnnouncementSection.classList.add('hidden');
                 }
 
-                // Start real-time listeners (assuming collections exist)
                 unsubscribeDiscussions = startDiscussionListener();
                 unsubscribeAnnouncements = startAnnouncementListener();
 
-                // If user just logged in, hide auth modal
                 hideModal(authModal);
 
             } else {
-                // User is signed out or anonymous
                 currentUserId = auth.currentUser?.uid || 'N/A'; 
                 displayUserId.textContent = 'Not Logged In';
                 
-                // Show login prompt/modal by default
                 mainContent.classList.add('hidden');
-                authButton.style.display = 'block';
-                logoutButton.style.display = 'none';
+                authButton.classList.remove('hidden');
+                userMenuContainer.classList.add('hidden');
+
                 adminLink.classList.add('hidden');
                 newAnnouncementSection.classList.add('hidden');
             }
         });
 
         // --- Event Listeners & Handlers ---
-
-        // AUTH HANDLERS
+        
         document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
         authButton.addEventListener('click', () => {
             authError.textContent = '';
-            // Reset forms to login view upon opening
             loginForm.classList.remove('hidden');
             registerForm.classList.add('hidden');
             showModal(authModal);
         });
-        logoutButton.addEventListener('click', () => auth.signOut());
+        userMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); userDropdownMenu.classList.toggle('hidden'); });
+        document.addEventListener('click', (event) => {
+            if (!userMenuContainer.contains(event.target) && !userDropdownMenu.classList.contains('hidden')) {
+                userDropdownMenu.classList.add('hidden');
+            }
+        });
+        logoutButton.addEventListener('click', () => { signOut(auth); userDropdownMenu.classList.add('hidden'); });
+
 
         document.getElementById('switch-to-register').addEventListener('click', () => {
             loginForm.classList.add('hidden');
@@ -561,7 +969,6 @@
             }
         });
 
-        // VIEW NAVIGATION
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -572,8 +979,6 @@
             });
         });
 
-
-        // DISCUSSION POSTING
         newTopicForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('topic-title').value;
@@ -581,8 +986,8 @@
             const errorElement = document.getElementById('topic-post-error');
             errorElement.textContent = 'Posting...';
 
-            if (!auth.currentUser) {
-                 errorElement.textContent = 'Please log in to post a topic.';
+            if (!auth.currentUser || auth.currentUser.isAnonymous) {
+                 errorElement.textContent = 'Please register/log in with email to post a topic.';
                  return;
             }
 
@@ -591,7 +996,7 @@
                     title,
                     content,
                     userId: currentUserId,
-                    userName: auth.currentUser.email || 'Anonymous',
+                    userName: auth.currentUser.email || 'Registered User',
                     timestamp: serverTimestamp()
                 });
                 newTopicForm.reset();
@@ -603,14 +1008,12 @@
             }
         });
 
-        // ANNOUNCEMENT POSTING (Admin Only)
         newAnnouncementForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!isAdmin) {
-                alert('Access Denied: Only admins can post announcements.');
+                console.warn('Access Denied: Only admins can post announcements.');
                 return;
             }
-
             const title = document.getElementById('announcement-title').value;
             const content = document.getElementById('announcement-content').value;
 
@@ -621,14 +1024,12 @@
                     timestamp: serverTimestamp()
                 });
                 newAnnouncementForm.reset();
-                alert('Announcement published successfully!');
+                console.log('Announcement published successfully!');
             } catch (error) {
                 console.error("Error publishing announcement:", error);
-                alert(`Failed to publish: ${error.message}`);
             }
         });
         
-        // UNIT AND RESOURCE MODAL HANDLERS
         document.getElementById('units-button').addEventListener('click', () => showModal(unitSelectionModal));
         
         document.querySelectorAll('[data-close-modal]').forEach(btn => {
@@ -638,12 +1039,6 @@
         });
         
         let selectedUnit = '';
-        const unitDisplayMap = {
-            'biochemistry': '1. Biochemistry',
-            'physiology': '2. Physiology',
-            'anatomy': '3. Anatomy',
-            'nursing-skills': '4. Nursing Skills'
-        };
 
         document.querySelectorAll('.unit-select-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -666,9 +1061,9 @@
             });
         });
         
-        // ADMIN UPLOAD HANDLER
-        adminUploadForm.addEventListener('submit', async (e) => {
+        document.getElementById('admin-upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const uploadStatus = document.getElementById('upload-status');
             if (!isAdmin) {
                 uploadStatus.textContent = 'Access Denied: You are not an admin.';
                 return;
@@ -683,7 +1078,6 @@
             uploadStatus.classList.remove('text-red-500', 'text-primary');
 
             try {
-                // Public data path for shared resources
                 const resourcesRef = collection(db, `/artifacts/${appId}/public/data/unit_resources`);
 
                 await addDoc(resourcesRef, {
@@ -695,7 +1089,7 @@
                     timestamp: serverTimestamp()
                 });
                 
-                adminUploadForm.reset();
+                document.getElementById('admin-upload-form').reset();
                 uploadStatus.textContent = 'Resource uploaded successfully!';
                 uploadStatus.classList.add('text-primary');
                 setTimeout(() => uploadStatus.textContent = '', 5000);
@@ -707,7 +1101,6 @@
         });
 
 
-        // Run initial auth setup
         setupAuth();
 
     </script>
