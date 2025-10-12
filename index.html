@@ -152,7 +152,6 @@
                 </section>
                 <section id="discussion-list">
                     <h3 class="text-2xl font-semibold mb-4 text-gray-700">Latest Discussions</h3>
-                    <p class="text-gray-500" id="discussion-loading">Loading discussions...</p>
                     <!-- Discussion items will be rendered here -->
                 </section>
             </div>
@@ -169,7 +168,6 @@
                     </form>
                 </section>
                 <section id="announcement-list">
-                    <p class="text-gray-500" id="announcement-loading">Loading announcements...</p>
                     <!-- Announcement items will be rendered here -->
                 </section>
             </div>
@@ -712,7 +710,13 @@
             const announcementsRef = collection(db, `/artifacts/${appId}/public/data/announcements`);
             const q = query(announcementsRef); 
 
+            // Initial loading state setup
+            announcementList.innerHTML = '<p class="text-gray-500 p-4 bg-gray-50 rounded-lg">Loading announcements...</p>';
+
             return onSnapshot(q, (snapshot) => {
+                // Clear the content after successful load (resolves persistent loading message)
+                announcementList.innerHTML = ''; 
+                
                 const announcements = [];
                 snapshot.forEach(doc => {
                     announcements.push({ id: doc.id, ...doc.data() });
@@ -720,8 +724,6 @@
 
                 announcements.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
-                announcementList.innerHTML = '';
-                
                 if (announcements.length === 0) {
                     announcementList.innerHTML = '<p class="text-gray-500 p-4 bg-gray-50 rounded-lg">No current announcements.</p>';
                 } else {
@@ -766,8 +768,9 @@
                     });
                 }
             }, (error) => {
+                // Better error feedback if reading the public collection fails
                 console.error("Error fetching announcements:", error);
-                announcementList.innerHTML = '<p class="text-red-500">Error loading announcements. Check console for details.</p>';
+                announcementList.innerHTML = '<p class="text-red-500 p-4 bg-red-100 border border-red-300 rounded-lg">Error loading announcements: Access or synchronization issue. Check console for details. (Likely a permission problem for non-admin users).</p>';
             });
         };
 
