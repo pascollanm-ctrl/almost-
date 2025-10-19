@@ -79,81 +79,39 @@
         }
 
         /* Markdown rendering utility for LLM output */
-        /* Basic prose styles for generated content */
-        .prose h1, .prose h2, .prose h3 { font-weight: bold; margin-top: 1.5em; margin-bottom: 0.75em; font-size: 1.5rem; }
-        .prose h3 { font-size: 1.25rem; }
-        .prose ul { list-style: disc; margin-left: 1.5em; padding-left: 0; }
-        .prose ul li { margin-bottom: 0.5em; }
-        .prose p { margin-bottom: 1em; line-height: 1.6; }
-        .prose { font-size: 1rem; }
-        
-        /* Notification bell badge overrides */
-        #notificationBell { position: relative; display: inline-flex; align-items: center; justify-content: center; }
-        #notificationBadge {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 6px;
-            background: #ff3b30; /* bright red */
-            color: #fff;
-            font-size: 11px;
-            line-height: 18px;
-            font-weight: 700;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
-            pointer-events: none;
-        }
-        #notificationBadge.hidden { display: none !important; }
-        #notificationBadge.zero { background: transparent; color: inherit; font-weight: 600; box-shadow: none; }
-
-        @media (max-width: 420px) {
-            #notificationBadge { min-width: 16px; height: 16px; font-size: 10px; top: -3px; right: -3px; line-height: 16px; }
-        }
+        .prose h1, .prose h2, .prose h3 { font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+        .prose ul { list-style: disc; margin-left: 1.5em; }
+        .prose p { margin-bottom: 1em; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container-app flex justify-between items-center py-4">
             <h1 class="text-2xl font-bold text-gray-800">Clinical Resource Hub</h1>
-            <nav class="relative flex items-center">
+            <nav class="relative">
                 <!-- Authentication button for logged out state -->
                 <button id="auth-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">Login / Register</button>
                 
                 <!-- User Menu for logged in state (Hidden by default) -->
-                <div id="user-menu-container" class="hidden ml-3">
+                <div id="user-menu-container" class="hidden">
                     <button id="user-menu-toggle" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <!-- Profile Icon (UserCircle SVG) -->
+                         <!-- Profile Icon (UserCircle SVG) -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-700"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </button>
 
                     <div id="user-dropdown-menu" class="absolute hidden right-0 mt-3 w-64 bg-white rounded-xl shadow-2xl overflow-hidden ring-1 ring-black ring-opacity-5">
                         <div class="p-4 border-b border-gray-100">
-                            <p class="text-sm font-semibold text-gray-800">Current User ID:</p>
-                            <!-- User ID is displayed here -->
+                            <p class="text-sm font-semibold text-gray-800">Current User:</p>
+                            <!-- User ID/Email is displayed here -->
                             <p id="display-user-id" class="font-mono text-xs bg-gray-100 p-1 rounded mt-1 text-gray-600 truncate">Loading...</p>
                         </div>
                         <div class="p-2">
                              <button id="logout-button" class="w-full text-left flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50 transition duration-150">
-                                 <span class="mr-2">🚪</span> Log Out
+                                <span class="mr-2">🚪</span> Log Out
                             </button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Notification Bell (top-right of navbar) -->
-                <button id="notificationBell" class="ml-3 p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300" aria-label="Notifications" title="Notifications">
-                    <!-- Bell SVG -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <!-- Unread badge (dynamic) -->
-                    <span id="notificationBadge" class="hidden">0</span>
-                </button>
             </nav>
         </div>
     </header>
@@ -194,7 +152,6 @@
                 </section>
                 <section id="discussion-list">
                     <h3 class="text-2xl font-semibold mb-4 text-gray-700">Latest Discussions</h3>
-                    <p class="text-gray-500 text-center py-4" id="discussion-loading">Loading discussions...</p>
                     <!-- Discussion items will be rendered here -->
                 </section>
             </div>
@@ -211,7 +168,6 @@
                     </form>
                 </section>
                 <section id="announcement-list">
-                    <p class="text-gray-500 text-center py-4" id="announcement-loading">Loading announcements...</p>
                     <!-- Announcement items will be rendered here -->
                 </section>
             </div>
@@ -219,11 +175,6 @@
             <!-- RESOURCE VIEW -->
             <div id="resource-view" class="content-panel">
                 <h2 id="resource-view-title" class="text-3xl font-extrabold mb-6 text-gray-800">Unit Resources</h2>
-                <div id="resource-actions" class="flex flex-wrap gap-2 mb-6 border-b pb-4">
-                    <button id="generate-study-guide-btn" class="btn-ai text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-violet-600 transition duration-200" disabled>
-                        🧠 Generate AI Study Guide
-                    </button>
-                </div>
                 <div id="resource-content-display">
                     <p class="text-lg text-gray-600 p-6 bg-gray-100 rounded-lg">Please use the **"Select Unit & Resources"** button in the sidebar to choose content.</p>
                 </div>
@@ -268,6 +219,7 @@
                     </form>
                 </section>
             </div>
+
         </section>
     </main>
 
@@ -318,17 +270,17 @@
             <h2 id="resource-modal-title" class="text-2xl font-bold mb-2"></h2>
             <p class="text-gray-600 mb-4">What resources do you need?</p>
             <div id="resource-list" class="space-y-3">
+                <!-- These buttons now automatically serve the selected Anatomy sub-unit or main unit -->
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="objectives">Learning Objectives</button>
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="past-papers">Past Papers</button>
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="learning-materials">Learning Materials (Links)</button>
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="achievement">Achievement & Milestones</button>
-                <p class="text-sm text-gray-500 mt-2">Selecting a resource will retrieve all available documents for the current unit.</p>
             </div>
             <button class="close-btn" data-close-modal="resource-selection-modal">&times;</button>
         </div>
     </section>
 
-    <!-- FOOTER -->
+    <!-- FOOTER MODIFIED: Removed "Powered by..." line as requested -->
     <footer class="mt-8 py-4 bg-gray-800 text-white">
         <div class="container-app text-center">
             <p class="text-sm">&copy; 2025 Clinical Resource Hub.</p>
@@ -339,28 +291,24 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, onSnapshot, serverTimestamp, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, deleteDoc, collection, query, onSnapshot, serverTimestamp, addDoc, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
-        // --- ENVIRONMENT SETUP (MANDATORY) ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'clinical-hub-default';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : JSON.stringify({}));
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const ADMIN_EMAIL = "pascollanm@gmail.com"; // User with this email is considered admin
+        // IMPORTANT: Environment variables from the platform are used here.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'discussion-group-2e4e3';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : JSON.stringify({
+            apiKey: "AIzaSyChZG0b4IiGy4DMkBnuvivTW_Q48fJ8uEg", 
+            authDomain: "discussion-group-2e4e3.firebaseapp.com",
+            projectId: "discussion-group-2e4e3",
+            storageBucket: "discussion-group-2e4e3.firebasestorage.app",
+            messagingSenderId: "992748744659",
+            appId: "1:992748744659:web:3538b81190f5fb01f18926"
+        }));
+        // --- Admin Email is defined here for permissions checks ---
+        const ADMIN_EMAIL = "pascollanm@gmail.com"; 
         const API_KEY = ""; // Placeholder for LLM API Key injection
 
-        // --- CONSTANTS ---
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-        const unitNames = {
-            'biochemistry': '1. Biochemistry',
-            'physiology': '2. Physiology',
-            'anatomy-general': '3A. General Anatomy',
-            'anatomy-embryology': '3B. Embryology',
-            'anatomy-histology': '3C. Histology',
-            'nursing-skills': '4. Nursing Skills'
-        };
-
-        // --- FIREBASE INIT ---
+        // --- Firebase Initialization ---
         setLogLevel('Debug');
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -368,361 +316,771 @@
         
         let currentUserId = null;
         let isAdmin = false;
-        let isAuthReady = false;
-        let currentSelectedUnit = null;
-        let currentUnitData = {}; // Stores all fetched resources for the current unit
 
         // --- DOM Elements ---
         const authModal = document.getElementById('auth-modal');
         const unitSelectionModal = document.getElementById('unit-selection-modal');
         const resourceSelectionModal = document.getElementById('resource-selection-modal');
         const mainContent = document.getElementById('app-main-content');
+        
+        // Header UI elements
         const authButton = document.getElementById('auth-button');
         const userMenuContainer = document.getElementById('user-menu-container');
+        const userMenuToggle = document.getElementById('user-menu-toggle');
         const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        const logoutButton = document.getElementById('logout-button');
         const displayUserId = document.getElementById('display-user-id');
+
         const adminLink = document.getElementById('admin-link');
-        const discussionList = document.getElementById('discussion-list');
-        const announcementList = document.getElementById('announcement-list');
-        const newAnnouncementSection = document.getElementById('new-announcement-section');
         const resourceViewTitle = document.getElementById('resource-view-title');
         const resourceContentDisplay = document.getElementById('resource-content-display');
-        const aiStudyGuideOutput = document.getElementById('ai-study-guide-output');
-        const generateStudyGuideBtn = document.getElementById('generate-study-guide-btn');
+        const aiStudyGuideOutput = document.getElementById('ai-study-guide-output'); 
 
-        // --- UTILITY FUNCTIONS ---
-
-        const showModal = (id) => { document.getElementById(id).style.display = 'flex'; };
-        const hideModal = (id) => { document.getElementById(id).style.display = 'none'; };
-
-        document.querySelectorAll('[data-close-modal]').forEach(el => {
-            el.addEventListener('click', (e) => hideModal(e.target.dataset.closeModal));
-        });
-
-        const switchView = (viewId) => {
-            document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active-panel'));
-            document.getElementById(viewId).classList.add('active-panel');
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('bg-primary', 'text-white', 'shadow-md');
-                item.classList.add('text-gray-700', 'hover:bg-gray-100');
-            });
-            const activeItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
-            if (activeItem) {
-                activeItem.classList.add('bg-primary', 'text-white', 'shadow-md');
-                activeItem.classList.remove('text-gray-700', 'hover:bg-gray-100');
-            }
-        };
+        // Forms and Lists
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const authError = document.getElementById('auth-error');
+        const newTopicForm = document.getElementById('new-topic-form');
+        const newAnnouncementSection = document.getElementById('new-announcement-section');
+        const newAnnouncementForm = document.getElementById('new-announcement-form');
+        const discussionList = document.getElementById('discussion-list');
+        const announcementList = document.getElementById('announcement-list');
+        const uploadSubmitBtn = document.getElementById('upload-submit-btn'); // Added for button control
+        const uploadStatus = document.getElementById('upload-status'); // Added for status control
         
-        // Simple Markdown to HTML converter (necessary for the prose utility class)
-        const marked = (markdown) => {
-            // Basic replacements for Markdown to HTML (supports headings, lists, bold)
-            let html = markdown
-                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                .replace(/\*\*([^\*]+)\*\*/gim, '<b>$1</b>')
-                .replace(/^\* (.*$)/gim, '<ul><li>$1</li></ul>')
-                .replace(/<\/ul>\n<ul>/gim, '')
-                .replace(/\n\n/g, '<p></p>')
-                .replace(/\n/g, '<br>');
-            // Wrap text blocks that aren't lists or headings in paragraphs
-            return html.replace(/([^\n<]+)(<br>|$)/g, (match, text, br) => {
-                if (text.trim() === '' || text.startsWith('<h') || text.startsWith('<ul>')) return match;
-                return `<p>${text.trim()}</p>${br}`;
-            }).replace(/<\/p><p>/g, '');
+        // Unit Map (Updated for Anatomy Sub-units)
+        const unitDisplayMap = {
+            'biochemistry': '1. Biochemistry',
+            'physiology': '2. Physiology',
+            'anatomy-general': '3A. General Anatomy',
+            'anatomy-embryology': '3B. Embryology (Anatomy)',
+            'anatomy-histology': '3C. Histology (Anatomy)',
+            'nursing-skills': '4. Nursing Skills'
         };
 
+        // --- Deletion Helper Functions (The corrected part for Admin/Author control) ---
 
-        // --- FIREBASE PATHS ---
-        const getCollectionPath = (collectionName, unitId = null) => {
-            if (collectionName === 'resources' && unitId) {
-                // Public resources are saved to a collection named after the unit
-                return `artifacts/${appId}/public/data/resources_${unitId}`;
+        const deleteDocument = async (collectionPath, docId) => {
+            try {
+                await deleteDoc(doc(db, collectionPath, docId));
+                console.log(`Document ${docId} deleted successfully from ${collectionPath}`);
+                // UI refresh is handled by onSnapshot listeners
+            } catch (error) {
+                console.error(`Error deleting document ${docId}:`, error);
+                // In a real app, this would show a failure message on screen.
+                console.error("Failed to delete document. Check permissions/console.");
             }
-            // Discussions and Announcements are general public collections
-            return `artifacts/${appId}/public/data/${collectionName}`;
         };
 
-        // --- LLM AI STUDY GUIDE LOGIC ---
+        const deleteDiscussion = (docId) => {
+            const collectionPath = `/artifacts/${appId}/public/data/discussions`;
+            deleteDocument(collectionPath, docId);
+        };
 
-        // Function for exponential backoff retry logic
-        const withRetry = async (fn, retries = 3) => {
-            for (let i = 0; i < retries; i++) {
+        const deleteAnnouncement = (docId) => {
+            if (!isAdmin) {
+                console.warn('Access Denied: Only admins can delete announcements.');
+                return;
+            }
+            const collectionPath = `/artifacts/${appId}/public/data/announcements`;
+            deleteDocument(collectionPath, docId);
+        };
+
+        const deleteResource = (docId) => {
+            if (!isAdmin) {
+                console.warn('Access Denied: Only admins can delete resources.');
+                return;
+            }
+            const collectionPath = `/artifacts/${appId}/public/data/unit_resources`;
+            deleteDocument(collectionPath, docId);
+        };
+
+
+        // --- LLM Utility Functions (Kept for completeness, no changes needed here) ---
+
+        const fetchWithRetry = async (url, options, maxRetries = 5) => {
+            for (let i = 0; i < maxRetries; i++) {
                 try {
-                    return await fn();
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
                 } catch (error) {
-                    console.warn(`Attempt ${i + 1} failed. Retrying in ${Math.pow(2, i)}s...`);
-                    if (i === retries - 1) throw error;
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
                 }
             }
         };
 
-        const generateStudyGuide = async () => {
-            if (!currentSelectedUnit || !isAuthReady) return;
-
-            // Clear previous output and show loading
-            aiStudyGuideOutput.innerHTML = `<div class="p-6 bg-violet-100 rounded-xl shadow-inner text-violet-800 flex items-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Generating AI Study Guide for <b>${unitNames[currentSelectedUnit]}</b>...
-            </div>`;
-
-            // Combine all text content from the current unit's resources
-            let allContent = [];
-            // Prioritize Objectives and Past Papers for study guide generation
-            currentUnitData['objectives']?.forEach(resource => allContent.push(`Objective: ${resource.data}`));
-            currentUnitData['past-papers']?.forEach(resource => allContent.push(`Past Paper Topic: ${resource.title}`));
-            // Add other data if available but keep it concise
-            currentUnitData['achievement']?.forEach(resource => allContent.push(`Achievement: ${resource.title} (${resource.data})`));
-
-            if (allContent.length < 2) {
-                aiStudyGuideOutput.innerHTML = '<p class="text-red-500 p-6 bg-gray-100 rounded-xl">Insufficient Objectives or Past Paper data to generate a meaningful study guide. Please upload more unit resources via the Admin panel.</p>';
-                return;
+        const markdownToHtml = (markdown) => {
+            // Simple markdown converter for basic formatting (list, bold, headers)
+            let html = markdown;
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*\*/gim, '<em>$1</em>');
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = `<p>${html}</p>`;
+            html = html.replace(/<li>.*<\/li>/g, match => `<ul>${match.replace(/<\/li><li>/g, '</li>\n<li>')}</ul>`);
+            return html;
+        };
+        
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
             }
-            
-            // Limit content size for LLM prompt
-            const contentString = allContent.join('\n');
-            const truncatedContent = contentString.substring(0, 10000); // Max 10k chars
+            return bytes.buffer;
+        };
 
-            const systemPrompt = `You are an AI Clinical Tutor. Your task is to act as a highly effective medical student study partner. Based ONLY on the provided content (objectives/topics) for the unit, generate a concise, structured study plan.
-            Structure the response into three main sections using Markdown headings:
-            1. **Key Focus Areas** (5-7 bullet points summarizing the core concepts).
-            2. **High-Yield Practice Points** (3-5 actionable study tasks/questions).
-            3. **Common Exam Traps** (2-3 warnings about common pitfalls or confusing concepts).
-            Be encouraging and focus on clarity.`;
+        const pcmToWav = (pcm16, sampleRate = 24000) => {
+            const numChannels = 1;
+            const bytesPerSample = 2; // 16-bit PCM
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataLength = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataLength);
+            const view = new DataView(buffer);
+            let offset = 0;
 
-            const userQuery = `Generate a comprehensive study plan and guide for the Clinical Unit: ${unitNames[currentSelectedUnit]}. The primary source material is:\n\n${truncatedContent}`;
+            function writeString(s) {
+                for (let i = 0; i < s.length; i++) {
+                    view.setUint8(offset + i, s.charCodeAt(i));
+                }
+                offset += s.length;
+            }
+
+            function writeUint32(val) {
+                view.setUint32(offset, val, true);
+                offset += 4;
+            }
+
+            function writeUint16(val) {
+                view.setUint16(offset, val, true);
+                offset += 2;
+            }
+
+            // RIFF chunk
+            writeString('RIFF');
+            writeUint32(36 + dataLength); // ChunkSize
+            writeString('WAVE');
+
+            // fmt chunk
+            writeString('fmt ');
+            writeUint32(16); // Subchunk1Size
+            writeUint16(1); // AudioFormat (1=PCM)
+            writeUint16(numChannels);
+            writeUint32(sampleRate);
+            writeUint32(byteRate);
+            writeUint16(blockAlign);
+            writeUint16(bytesPerSample * 8); // BitsPerSample (16)
+
+            // data chunk
+            writeString('data');
+            writeUint32(dataLength);
+
+            // Write PCM data
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        };
+        
+        const generateAndPlayTTS = async (text, buttonElement) => {
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = 'Generating...';
+            buttonElement.disabled = true;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: text }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+
+            try {
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    
+                    buttonElement.textContent = 'Playing... 🎧';
+                    audio.play();
+                    audio.onended = () => {
+                        buttonElement.textContent = originalText;
+                        buttonElement.disabled = false;
+                        URL.revokeObjectURL(audioUrl);
+                    };
+                    audio.onerror = () => {
+                        buttonElement.textContent = 'Playback Failed ❌';
+                        buttonElement.disabled = false;
+                        URL.revokeObjectURL(audioUrl);
+                    }
+                } else {
+                    console.error("Invalid TTS response structure or data.");
+                    buttonElement.textContent = 'Error (TTS failed) ❌';
+                }
+
+            } catch (error) {
+                console.error("TTS API Call failed:", error);
+                buttonElement.textContent = 'Error (API) ❌';
+            } finally {
+                if (buttonElement.textContent.includes('Generating') || buttonElement.textContent.includes('Error')) {
+                    setTimeout(() => {
+                         if (!buttonElement.textContent.includes('Playing')) {
+                            buttonElement.textContent = originalText;
+                            buttonElement.disabled = false;
+                        }
+                    }, 3000);
+                }
+            }
+        };
+
+        const generateStudyGuide = async (resourceContent, button, outputArea) => {
+            const originalText = button.textContent;
+            button.textContent = 'Generating Study Guide... ⏳';
+            button.classList.add('animate-pulse');
+            button.disabled = true;
+            outputArea.innerHTML = ''; 
+
+            const systemPrompt = "You are an expert Clinical Medicine tutor. Analyze the provided resource (e.g., objectives or past papers) and generate a comprehensive, highly relevant study guide in Markdown format. The guide should include a brief introduction, 3-5 key concepts derived from the content, and 3 high-yield study questions based on the material. Use clear headings and lists. Keep the total output concise, professional, and directly useful for medical students.";
+            const userQuery = `Generate a high-yield study guide based on the following resource content:\n---\n${resourceContent}\n---`;
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: [{ "google_search": {} }], // Enable grounding for better context
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
             };
 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            
             try {
-                const result = await withRetry(async () => {
-                    const response = await fetch(GEMINI_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`API response error: ${response.status} - ${errorText}`);
-                    }
-                    return response.json();
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
-                const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Could not generate content. Please try again.";
+                const sources = result?.candidates?.[0]?.groundingMetadata?.groundingAttributions || [];
 
-                if (generatedText) {
-                    aiStudyGuideOutput.innerHTML = `
-                        <div class="p-6 bg-violet-50 rounded-xl shadow-lg border border-violet-200">
-                            <h3 class="text-2xl font-bold text-violet-700 mb-4 flex items-center">
-                                <span class="mr-2">🧠</span> AI Study Guide: ${unitNames[currentSelectedUnit]}
-                            </h3>
-                            <div class="prose max-w-none text-gray-700">
-                                ${marked(generatedText)}
-                            </div>
+                outputArea.innerHTML = `
+                    <div class="bg-violet-50 p-6 rounded-xl shadow-inner border border-violet-200">
+                        <h3 class="text-2xl font-bold text-violet-700 mb-4 flex items-center">
+                            <span class="mr-2">✨</span> AI-Generated Study Guide
+                        </h3>
+                        <div class="prose max-w-none text-gray-800">
+                            ${markdownToHtml(generatedText)}
                         </div>
-                    `;
-                } else {
-                    throw new Error("Received empty response from AI.");
-                }
+                        <div class="mt-4 pt-4 border-t border-violet-200">
+                            <p class="text-xs font-semibold text-gray-500 mb-1">Sources Cited (via Google Search):</p>
+                            <ul class="text-xs list-disc list-inside text-gray-600 space-y-1">
+                                ${sources.map(source => 
+                                    `<li><a href="${source.web.uri}" target="_blank" class="hover:underline text-violet-600">${source.web.title}</a></li>`
+                                ).join('') || '<li>No specific web sources cited.</li>'}
+                            </ul>
+                        </div>
+                    </div>
+                `;
             } catch (error) {
-                console.error("AI Generation Error:", error);
-                aiStudyGuideOutput.innerHTML = `<p class="text-red-500 p-4 bg-red-100 rounded-xl">Error generating study guide: ${error.message}. Check console for details.</p>`;
+                console.error("LLM Generation failed:", error);
+                outputArea.innerHTML = '<p class="text-red-500 p-6 bg-red-50 rounded-lg">Error generating study guide. Please check your network connection or the API key status.</p>';
+            } finally {
+                button.textContent = originalText;
+                button.classList.remove('animate-pulse');
+                button.disabled = false;
+                // Scroll to the output area
+                outputArea.scrollIntoView({ behavior: 'smooth' });
             }
         };
 
-        // --- AUTHENTICATION HANDLERS ---
-
-        const updateUIForUser = (user) => {
-            const isUserLoggedIn = !!user;
-            currentUserId = user ? user.uid : (initialAuthToken ? 'INITIAL_USER' : crypto.randomUUID());
-            const userEmail = user ? user.email : 'Anonymous';
-            isAdmin = userEmail === ADMIN_EMAIL;
+        // --- Utility Functions ---
+        const showModal = (modalElement) => { modalElement.style.display = 'flex'; };
+        const hideModal = (modalElement) => { modalElement.style.display = 'none'; };
+        const switchView = (targetViewId) => {
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active-panel');
+            });
+            document.getElementById(targetViewId).classList.add('active-panel');
             
-            authButton.classList.toggle('hidden', isUserLoggedIn);
-            userMenuContainer.classList.toggle('hidden', !isUserLoggedIn);
-            mainContent.classList.toggle('hidden', !isUserLoggedIn);
-            adminLink.classList.toggle('hidden', !isAdmin);
-            newAnnouncementSection.classList.toggle('hidden', !isAdmin);
-
-            if (isUserLoggedIn) {
-                displayUserId.textContent = userEmail || `User ID: ${currentUserId}`;
-                mainContent.classList.remove('hidden');
-                hideModal('auth-modal');
-            } else {
-                 displayUserId.textContent = 'Not logged in';
-                 mainContent.classList.add('hidden');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-primary', 'text-white');
+                item.classList.add('text-gray-700', 'hover:bg-gray-100');
+            });
+            const activeNav = document.querySelector(`.nav-item[data-view="${targetViewId}"]`);
+            if(activeNav) {
+                activeNav.classList.add('bg-primary', 'text-white');
+                activeNav.classList.remove('text-gray-700', 'hover:bg-gray-100');
             }
         };
 
-        // Toggle user dropdown menu
-        document.getElementById('user-menu-toggle').addEventListener('click', () => {
-            userDropdownMenu.classList.toggle('hidden');
+
+        // --- Real-time Data Listeners (No functional change, but keeping for correct behavior) ---
+
+        const startDiscussionListener = () => {
+            const discussionsRef = collection(db, `/artifacts/${appId}/public/data/discussions`);
+            const q = query(discussionsRef); 
+
+            return onSnapshot(q, (snapshot) => {
+                const discussions = [];
+                snapshot.forEach(doc => {
+                    discussions.push({ id: doc.id, ...doc.data() });
+                });
+
+                discussions.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+                discussionList.innerHTML = '';
+                const title = document.createElement('h3');
+                title.className = "text-2xl font-semibold mb-4 text-gray-700";
+                title.textContent = "Latest Discussions";
+                discussionList.appendChild(title);
+                
+                if (discussions.length === 0) {
+                    discussionList.innerHTML += '<p class="text-gray-500 p-4 bg-gray-50 rounded-lg">No discussions yet. Be the first to start a topic!</p>';
+                } else {
+                    discussions.forEach(topic => {
+                        const date = topic.timestamp ? new Date(topic.timestamp.seconds * 1000).toLocaleString() : 'N/A';
+                        // DELETION CONDITION 1: Check if the current user is the author
+                        const isAuthor = currentUserId === topic.userId;
+                        
+                        const item = document.createElement('div');
+                        item.className = 'discussion-item hover:shadow-xl transition duration-200';
+                        
+                        // Delete button is only rendered if the user is the author
+                        const deleteBtnHtml = isAuthor ? `
+                            <button data-id="${topic.id}" class="delete-discussion-btn flex-shrink-0 ml-4 text-red-600 hover:bg-red-100 border border-red-300 text-xs font-semibold py-2 px-3 rounded-lg transition duration-150">Delete</button>
+                        ` : '';
+                        
+                        item.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary mb-2">${topic.title}</h4>
+                                    <p class="text-gray-700 mb-3">${topic.content.substring(0, 200)}${topic.content.length > 200 ? '...' : ''}</p>
+                                </div>
+                                ${deleteBtnHtml}
+                            </div>
+                            <p class="text-xs text-gray-400">Posted by ${topic.userName} (${topic.userId.substring(0, 8)}...) on ${date}</p>
+                        `;
+
+                        if (isAuthor) {
+                            item.querySelector('.delete-discussion-btn').addEventListener('click', () => deleteDiscussion(topic.id));
+                        }
+                        
+                        discussionList.appendChild(item);
+                    });
+                }
+            }, (error) => {
+                console.error("Error fetching discussions:", error);
+                discussionList.innerHTML = '<p class="text-red-500 p-4 bg-red-100 rounded-lg">Error loading discussions. Check console for details.</p>';
+            });
+        };
+
+        const startAnnouncementListener = () => {
+            const announcementsRef = collection(db, `/artifacts/${appId}/public/data/announcements`);
+            const q = query(announcementsRef); 
+
+            // Initial loading state setup
+            announcementList.innerHTML = '<p class="text-gray-500 p-4 bg-gray-50 rounded-lg" id="announcement-loading-msg">Loading announcements...</p>';
+
+            return onSnapshot(q, (snapshot) => {
+                // Clear the content after successful load (resolves persistent loading message)
+                announcementList.innerHTML = ''; 
+                
+                const announcements = [];
+                snapshot.forEach(doc => {
+                    announcements.push({ id: doc.id, ...doc.data() });
+                });
+
+                announcements.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+                if (announcements.length === 0) {
+                    announcementList.innerHTML = '<p class="text-gray-500 p-4 bg-gray-50 rounded-lg">No current announcements.</p>';
+                } else {
+                    announcements.forEach(announcement => {
+                        const date = announcement.timestamp ? new Date(announcement.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+                        
+                        const item = document.createElement('div');
+                        item.className = 'announcement-item border-l-4 border-accent';
+
+                        // DELETION CONDITION 2: Check if the current user is an Admin
+                        const deleteBtnHtml = isAdmin ? `
+                            <button data-id="${announcement.id}" class="delete-announcement-btn flex-shrink-0 ml-4 text-red-600 hover:bg-red-100 border border-red-300 text-xs font-semibold py-2 px-3 rounded-lg transition duration-150">Delete</button>
+                        ` : '';
+                        
+                        item.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-xl font-bold text-accent mb-1">${announcement.title}</h4>
+                                    <p class="text-gray-700 mb-2 whitespace-pre-wrap">${announcement.content}</p>
+                                </div>
+                                <div class="flex space-x-2 items-center">
+                                    <button class="read-announcement-btn flex-shrink-0 ml-4 btn-accent-outline text-xs font-semibold py-2 px-3 rounded-lg hover:bg-blue-50 transition duration-150">
+                                        Read Announcement 🔊
+                                    </button>
+                                    ${deleteBtnHtml}
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">Published on ${date} by Admin</p>
+                        `;
+                        
+                        const ttsButton = item.querySelector('.read-announcement-btn');
+                        ttsButton.addEventListener('click', () => {
+                            const textToRead = `${announcement.title}. ${announcement.content}`;
+                            generateAndPlayTTS(textToRead, ttsButton);
+                        });
+                        
+                        if (isAdmin) {
+                             item.querySelector('.delete-announcement-btn').addEventListener('click', () => deleteAnnouncement(announcement.id));
+                        }
+
+                        announcementList.appendChild(item);
+                    });
+                }
+            }, (error) => {
+                // This error message confirms the suspected security rule issue for non-admin/anonymous users reading public data.
+                console.error("Error fetching announcements:", error);
+                announcementList.innerHTML = '<p class="text-red-500 p-4 bg-red-100 border border-red-300 rounded-lg">Error loading announcements: Access or synchronization issue. (The client code is trying to read the public path correctly, this suggests a Security Rule for reading the public collection may be blocking non-admin/anonymous users).</p>';
+            });
+        };
+
+        const fetchResources = async (unit, type) => {
+            resourceViewTitle.textContent = `${unitDisplayMap[unit] || unit.toUpperCase()} - ${type.replace('-', ' ').toUpperCase()}`;
+            resourceContentDisplay.innerHTML = '<p class="text-gray-500 p-6">Loading resources...</p>';
+            aiStudyGuideOutput.innerHTML = ''; 
+
+            try {
+                const resourcesRef = collection(db, `/artifacts/${appId}/public/data/unit_resources`);
+                const q = query(resourcesRef, 
+                    where("unit", "==", unit),
+                    where("type", "==", type)
+                );
+                
+                const snapshot = await getDocs(q);
+                
+                let resources = [];
+                snapshot.forEach(doc => resources.push({ id: doc.id, ...doc.data() }));
+
+                resources.sort((a, b) => a.title.localeCompare(b.title));
+
+                if (resources.length === 0) {
+                    resourceContentDisplay.innerHTML = `<p class="text-lg text-gray-600 p-6 bg-gray-100 rounded-lg">No ${type.replace('-', ' ')} found for ${unitDisplayMap[unit]}.</p>`;
+                    return;
+                }
+
+                resourceContentDisplay.innerHTML = '<div class="space-y-4"></div>';
+                const container = resourceContentDisplay.firstChild;
+                
+                resources.forEach(resource => {
+                    const isLink = resource.type === 'learning-materials';
+                    const isTextResource = resource.type === 'objectives' || resource.type === 'past-papers' || resource.type === 'achievement';
+                    const content = isLink 
+                        ? `<a href="${resource.data}" target="_blank" class="text-blue-600 hover:underline font-medium">${resource.data}</a>`
+                        : `<p class="whitespace-pre-wrap">${resource.data}</p>`;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'resource-item';
+
+                    let aiButtonHtml = '';
+                    let deleteButtonHtml = '';
+                    
+                    // DELETION CONDITION 3: Check if the current user is an Admin
+                    if (isAdmin) {
+                        deleteButtonHtml = `
+                            <button data-id="${resource.id}" class="delete-resource-btn flex-shrink-0 ml-4 text-red-600 hover:bg-red-100 border border-red-300 text-xs font-semibold py-2 px-3 rounded-lg transition duration-150">Delete</button>
+                        `;
+                    }
+
+                    if (isTextResource) {
+                        aiButtonHtml = `
+                            <button data-content-id="${resource.id}" class="generate-guide-btn w-full btn-ai text-white font-bold py-2 px-4 rounded-lg hover:shadow-lg transition duration-200 mt-3">
+                                Generate Study Guide ✨
+                            </button>
+                        `;
+                    }
+
+                    item.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${resource.title}</h4>
+                            ${deleteButtonHtml}
+                        </div>
+                        ${content}
+                        <p class="text-xs text-gray-400 mt-2">Unit: ${unitDisplayMap[resource.unit]} | Type: ${resource.type.replace('-', ' ')}</p>
+                        ${aiButtonHtml}
+                    `;
+                    container.appendChild(item);
+                    
+                    if (isTextResource) {
+                        const guideButton = item.querySelector('.generate-guide-btn');
+                        guideButton.addEventListener('click', () => {
+                            generateStudyGuide(`Title: ${resource.title}\nContent:\n${resource.data}`, guideButton, aiStudyGuideOutput);
+                        });
+                    }
+                    
+                    if (isAdmin) {
+                         item.querySelector('.delete-resource-btn').addEventListener('click', () => deleteResource(resource.id));
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error fetching resources:", error);
+                resourceContentDisplay.innerHTML = '<p class="text-red-500 p-6">Error loading resources. Check console for details.</p>';
+            }
+        };
+
+        // Initialize listeners
+        let unsubscribeDiscussions = null;
+        let unsubscribeAnnouncements = null;
+
+        // --- Authentication Setup and State Change Listener ---
+
+        const setupAuth = async () => {
+             // Handle initial token sign in
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+            if (initialAuthToken.length > 0) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } catch (error) {
+                    console.error("Custom token sign-in failed. Attempting anonymous sign-in.", error);
+                    await signInAnonymously(auth);
+                }
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (unsubscribeDiscussions) unsubscribeDiscussions();
+            if (unsubscribeAnnouncements) unsubscribeAnnouncements();
+            
+            if (user) {
+                currentUserId = user.uid;
+                displayUserId.textContent = user.email ? user.email : currentUserId;
+                mainContent.classList.remove('hidden');
+                
+                authButton.classList.add('hidden');
+                userMenuContainer.classList.remove('hidden');
+
+                // *** ADMIN CHECK ***
+                isAdmin = user.email === ADMIN_EMAIL;
+                if (isAdmin) {
+                    adminLink.classList.remove('hidden');
+                    newAnnouncementSection.classList.remove('hidden');
+                } else {
+                    adminLink.classList.add('hidden');
+                    newAnnouncementSection.classList.add('hidden');
+                }
+
+                unsubscribeDiscussions = startDiscussionListener();
+                unsubscribeAnnouncements = startAnnouncementListener();
+
+                hideModal(authModal);
+
+            } else {
+                currentUserId = auth.currentUser?.uid || 'N/A'; 
+                displayUserId.textContent = 'Not Logged In';
+                
+                mainContent.classList.add('hidden');
+                authButton.classList.remove('hidden');
+                userMenuContainer.classList.add('hidden');
+
+                adminLink.classList.add('hidden');
+                newAnnouncementSection.classList.add('hidden');
+            }
         });
 
-        // Handle outside click to close dropdown
+        // --- Event Listeners & Handlers ---
+        
+        document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
+        authButton.addEventListener('click', () => {
+            authError.textContent = '';
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            showModal(authModal);
+        });
+        userMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); userDropdownMenu.classList.toggle('hidden'); });
         document.addEventListener('click', (event) => {
             if (!userMenuContainer.contains(event.target) && !userDropdownMenu.classList.contains('hidden')) {
                 userDropdownMenu.classList.add('hidden');
             }
         });
+        logoutButton.addEventListener('click', () => { signOut(auth); userDropdownMenu.classList.add('hidden'); });
 
-        // Authentication form handlers
-        document.getElementById('auth-button').addEventListener('click', () => showModal('auth-modal'));
-        document.getElementById('close-auth-modal').addEventListener('click', () => hideModal('auth-modal'));
+
         document.getElementById('switch-to-register').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-            document.getElementById('auth-error').textContent = '';
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            authError.textContent = '';
         });
         document.getElementById('switch-to-login').addEventListener('click', () => {
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-            document.getElementById('auth-error').textContent = '';
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            authError.textContent = '';
         });
 
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
+            authError.textContent = 'Logging in...';
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                document.getElementById('auth-error').textContent = 'Login successful!';
             } catch (error) {
-                document.getElementById('auth-error').textContent = 'Login failed: ' + error.message;
+                authError.textContent = `Login failed: ${error.message}`;
             }
         });
 
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
+        registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
+            authError.textContent = 'Registering...';
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
-                document.getElementById('auth-error').textContent = 'Registration successful! Logging in...';
             } catch (error) {
-                document.getElementById('auth-error').textContent = 'Registration failed: ' + error.message;
+                authError.textContent = `Registration failed: ${error.message}`;
             }
         });
 
-        document.getElementById('logout-button').addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                // After sign out, the onAuthStateChanged listener will handle UI update
-            } catch (error) {
-                console.error("Logout error:", error);
-            }
-        });
-
-        // --- FIREBASE LISTENERS & CRUD ---
-
-        // 1. Discussions
-        const renderDiscussions = (docs) => {
-            let html = '';
-            if (docs.length === 0) {
-                discussionList.innerHTML = '<p class="text-gray-500 p-4 bg-gray-50 rounded-lg">No discussions yet. Be the first to start a topic!</p>';
-                return;
-            }
-            docs.forEach(doc => {
-                const data = doc.data();
-                const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Just now';
-                html += `
-                    <div class="discussion-item border-l-4 border-primary">
-                        <h4 class="text-xl font-bold text-primary mb-1">${data.title}</h4>
-                        <p class="text-gray-700 mb-3">${data.content}</p>
-                        <div class="flex justify-between items-center text-xs text-gray-500">
-                            <span class="font-medium">Posted by: ${data.userId}</span>
-                            <span>${time}</span>
-                        </div>
-                    </div>
-                `;
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const viewId = item.getAttribute('data-view');
+                if (viewId) {
+                    switchView(viewId);
+                }
             });
-            discussionList.innerHTML = html;
-        };
+        });
 
-        const postNewTopic = async (e) => {
+        newTopicForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('topic-title').value;
             const content = document.getElementById('topic-content').value;
             const errorElement = document.getElementById('topic-post-error');
-            errorElement.textContent = '';
+            errorElement.textContent = 'Posting...';
 
-            if (!title || !content || !currentUserId) {
-                errorElement.textContent = 'Please fill all fields and ensure you are logged in.';
-                return;
+            if (!auth.currentUser || auth.currentUser.isAnonymous) {
+                 errorElement.textContent = 'Please register/log in with email to post a topic.';
+                 return;
             }
 
             try {
-                await addDoc(collection(db, getCollectionPath('discussions')), {
-                    title: title,
-                    content: content,
-                    userId: auth.currentUser?.email || currentUserId,
-                    timestamp: serverTimestamp(),
+                await addDoc(collection(db, `/artifacts/${appId}/public/data/discussions`), {
+                    title,
+                    content,
+                    userId: currentUserId,
+                    userName: auth.currentUser.email || 'Registered User',
+                    timestamp: serverTimestamp()
                 });
-                document.getElementById('new-topic-form').reset();
+                newTopicForm.reset();
                 errorElement.textContent = 'Topic posted successfully!';
                 setTimeout(() => errorElement.textContent = '', 3000);
             } catch (error) {
-                errorElement.textContent = 'Error posting topic: ' + error.message;
                 console.error("Error posting topic:", error);
+                errorElement.textContent = `Failed to post: ${error.message}`;
             }
-        };
-        document.getElementById('new-topic-form').addEventListener('submit', postNewTopic);
+        });
 
-        // 2. Announcements (Admin only post)
-        const renderAnnouncements = (docs) => {
-            let html = '';
-            if (docs.length === 0) {
-                announcementList.innerHTML = '<p class="text-gray-500 p-4 bg-gray-50 rounded-lg">No announcements available.</p>';
+        newAnnouncementForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isAdmin) {
+                console.warn('Access Denied: Only admins can post announcements.');
                 return;
             }
-            docs.forEach(doc => {
-                const data = doc.data();
-                const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString() : 'Unknown date';
-                html += `
-                    <div class="announcement-item border-l-4 border-accent">
-                        <h4 class="text-xl font-bold text-accent mb-1">${data.title}</h4>
-                        <p class="text-gray-700 mb-3">${data.content}</p>
-                        <div class="flex justify-between items-center text-xs text-gray-500">
-                            <span class="font-medium">Posted by: ${data.userId} (Admin)</span>
-                            <span>${time}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            announcementList.innerHTML = html;
-        };
-
-        const postNewAnnouncement = async (e) => {
-            e.preventDefault();
-            if (!isAdmin) return;
-
             const title = document.getElementById('announcement-title').value;
             const content = document.getElementById('announcement-content').value;
 
             try {
-                await addDoc(collection(db, getCollectionPath('announcements')), {
-                    title: title,
-                    content: content,
-                    userId: auth.currentUser.email,
-                    timestamp: serverTimestamp(),
+                await addDoc(collection(db, `/artifacts/${appId}/public/data/announcements`), {
+                    title,
+                    content,
+                    timestamp: serverTimestamp()
                 });
-                document.getElementById('new-announcement-form').reset();
+                newAnnouncementForm.reset();
+                console.log('Announcement published successfully!');
             } catch (error) {
-                console.error("Error posting announcement:", error);
+                console.error("Error publishing announcement:", error);
             }
-        };
-        document.getElementById('new-announcement-form').addEventListener('submit', postNewAnnouncement);
+        });
+        
+        document.getElementById('units-button').addEventListener('click', () => showModal(unitSelectionModal));
+        
+        document.querySelectorAll('[data-close-modal]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                hideModal(document.getElementById(btn.getAttribute('data-close-modal')));
+            });
+        });
+        
+        let selectedUnit = '';
 
-        // 3. Resources (Admin Upload/User View)
-        const handleResourceUpload = async (e) => {
+        document.querySelectorAll('.unit-select-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedUnit = btn.getAttribute('data-unit');
+                const unitTitle = unitDisplayMap[selectedUnit] || selectedUnit.toUpperCase();
+                document.getElementById('resource-modal-title').textContent = `${unitTitle} Resources`;
+                hideModal(unitSelectionModal);
+                showModal(resourceSelectionModal);
+            });
+        });
+
+        document.querySelectorAll('.resource-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const resourceType = btn.getAttribute('data-resource-type');
+                if (selectedUnit && resourceType) {
+                    hideModal(resourceSelectionModal);
+                    switchView('resource-view');
+                    fetchResources(selectedUnit, resourceType);
+                }
+            });
+        });
+        
+        // --- FIX: Admin Upload Logic Enhanced for immediate status feedback ---
+        document.getElementById('admin-upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Initial state change: show loading, disable button
+            uploadStatus.textContent = 'Uploading... ⏳';
+            uploadStatus.classList.remove('text-red-500', 'text-primary');
+            uploadSubmitBtn.disabled = true;
+
             if (!isAdmin) {
-                document.getElementById('upload-status').textContent = 'Permission denied.';
+                uploadStatus.textContent = 'Access Denied: You are not an admin.';
+                uploadStatus.classList.add('text-red-500');
+                uploadSubmitBtn.disabled = false;
                 return;
             }
 
@@ -730,192 +1088,38 @@
             const type = document.getElementById('upload-type').value;
             const title = document.getElementById('upload-title').value;
             const data = document.getElementById('upload-data').value;
-            const statusElement = document.getElementById('upload-status');
-            statusElement.textContent = '';
-            statusElement.classList.remove('text-red-500', 'text-green-500');
-
-            if (!unit || !type || !title || !data) {
-                statusElement.textContent = 'Please fill all fields.';
-                statusElement.classList.add('text-red-500');
-                return;
-            }
-
-            try {
-                const colPath = getCollectionPath('resources', unit);
-                await addDoc(collection(db, colPath), {
-                    unit: unit,
-                    type: type,
-                    title: title,
-                    data: data, // Stores the URL or text content
-                    uploadedBy: auth.currentUser.email,
-                    timestamp: serverTimestamp(),
-                });
-                document.getElementById('admin-upload-form').reset();
-                statusElement.textContent = 'Resource uploaded successfully!';
-                statusElement.classList.add('text-green-500');
-                setTimeout(() => statusElement.textContent = '', 5000);
-            } catch (error) {
-                statusElement.textContent = 'Error uploading resource: ' + error.message;
-                statusElement.classList.add('text-red-500');
-                console.error("Error uploading resource:", error);
-            }
-        };
-        document.getElementById('admin-upload-form').addEventListener('submit', handleResourceUpload);
-
-        // Unit Selection UI Handlers
-        document.getElementById('units-button').addEventListener('click', () => {
-            if (isAuthReady) showModal('unit-selection-modal');
-        });
-
-        document.querySelectorAll('.unit-select-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                currentSelectedUnit = e.target.dataset.unit;
-                hideModal('unit-selection-modal');
-                document.getElementById('resource-modal-title').textContent = unitNames[currentSelectedUnit];
-                showModal('resource-selection-modal');
-            });
-        });
-
-        document.querySelectorAll('.resource-select-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                const resourceType = e.target.dataset.resourceType;
-                if (!currentSelectedUnit || !isAuthReady) return;
-
-                hideModal('resource-selection-modal');
-                switchView('resource-view');
-
-                await fetchAndRenderResources(currentSelectedUnit, resourceType);
-                generateStudyGuideBtn.disabled = false;
-            });
-        });
-        
-        generateStudyGuideBtn.addEventListener('click', generateStudyGuide);
-
-        const fetchAndRenderResources = async (unitId, selectedType) => {
-            resourceViewTitle.textContent = `Unit Resources: ${unitNames[unitId]}`;
-            resourceContentDisplay.innerHTML = `<p class="text-lg text-blue-500 p-6">Loading ${selectedType} for ${unitNames[unitId]}...</p>`;
-            aiStudyGuideOutput.innerHTML = ''; // Clear AI guide on new unit load
-
-            try {
-                const colPath = getCollectionPath('resources', unitId);
-                const querySnapshot = await getDocs(collection(db, colPath));
-                
-                currentUnitData = { 'objectives': [], 'past-papers': [], 'learning-materials': [], 'achievement': [] };
-
-                querySnapshot.docs.forEach(doc => {
-                    const data = doc.data();
-                    if (currentUnitData[data.type]) {
-                        currentUnitData[data.type].push({ id: doc.id, ...data });
-                    }
-                });
-                
-                const resources = currentUnitData[selectedType] || [];
-
-                if (resources.length === 0) {
-                    resourceContentDisplay.innerHTML = `<p class="text-lg text-gray-500 p-6 bg-gray-100 rounded-lg">No ${selectedType} found for ${unitNames[unitId]}.</p>`;
-                    return;
-                }
-
-                let html = `<h3 class="text-2xl font-semibold mb-4 text-accent">${resources.length} Available ${selectedType.replace('-', ' ').toUpperCase()}</h3>`;
-                
-                resources.forEach(res => {
-                    const isLink = res.type === 'learning-materials' && (res.data.startsWith('http') || res.data.startsWith('www'));
-                    const dataContent = isLink 
-                        ? `<a href="${res.data}" target="_blank" class="text-blue-600 hover:underline">View Material Link</a>`
-                        : res.data.replace(/\n/g, '<br>');
-
-                    html += `
-                        <div class="resource-item border-l-4 ${isLink ? 'border-blue-500' : 'border-gray-500'}">
-                            <h4 class="text-xl font-bold text-gray-800 mb-1">${res.title}</h4>
-                            <p class="text-sm font-medium text-gray-500 mb-2">Type: ${res.type}</p>
-                            <div class="text-gray-700 text-sm">${dataContent}</div>
-                        </div>
-                    `;
-                });
-                resourceContentDisplay.innerHTML = html;
-
-            } catch (error) {
-                resourceContentDisplay.innerHTML = `<p class="text-red-500 p-6 bg-red-100 rounded-lg">Error loading resources: ${error.message}</p>`;
-                console.error("Error loading resources:", error);
-            }
-        };
-
-
-        // --- MAIN INITIALIZATION & AUTH STATE ---
-
-        // The core auth listener
-        onAuthStateChanged(auth, async (user) => {
-            if (!isAuthReady) {
-                // First run: Check for initial token and sign in anonymously if no standard user is present.
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken).catch(err => {
-                        console.error("Custom token sign-in failed:", err);
-                        // Fall back to anonymous if custom token fails (e.g., token expired)
-                        signInAnonymously(auth).catch(anonErr => console.error("Anonymous sign-in failed:", anonErr));
-                    });
-                } else if (!user) {
-                    await signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed:", err));
-                }
-                isAuthReady = true;
-                // If a non-anonymous user exists after initial auth check, proceed.
-                // If only an anonymous user exists, it is still "authenticated" but might not be fully functional.
-                if (user || initialAuthToken) {
-                    updateUIForUser(user || auth.currentUser);
-                    // Start real-time listeners only after auth is ready
-                    startRealtimeListeners();
-                } else {
-                    // Show login screen if even anonymous sign-in failed or initial load failed
-                    updateUIForUser(null);
-                    showModal('auth-modal');
-                }
-            } else {
-                // Subsequent runs (e.g., login/logout events)
-                updateUIForUser(user);
-            }
-        });
-        
-        // Setup Firestore Realtime Listeners
-        const startRealtimeListeners = () => {
-            // Discussion Listener
-            onSnapshot(query(collection(db, getCollectionPath('discussions'))), (snapshot) => {
-                const discussions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                renderDiscussions(discussions);
-                document.getElementById('discussion-loading').classList.add('hidden');
-            }, (error) => {
-                console.error("Error fetching discussions:", error);
-                document.getElementById('discussion-loading').textContent = 'Error loading discussions.';
-            });
-
-            // Announcement Listener
-            onSnapshot(query(collection(db, getCollectionPath('announcements'))), (snapshot) => {
-                const announcements = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                renderAnnouncements(announcements);
-                document.getElementById('announcement-loading').classList.add('hidden');
-            }, (error) => {
-                console.error("Error fetching announcements:", error);
-                document.getElementById('announcement-loading').textContent = 'Error loading announcements.';
-            });
             
-            // Notification Badge Logic (Simple counter for unread announcements - placeholder)
-            // You'd need complex logic to track per-user read status, so for now, we'll just check if any exist.
-            onSnapshot(collection(db, getCollectionPath('announcements')), (snapshot) => {
-                const badge = document.getElementById('notificationBadge');
-                if (snapshot.size > 0) {
-                    badge.textContent = snapshot.size;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            });
-        };
+            try {
+                const resourcesRef = collection(db, `/artifacts/${appId}/public/data/unit_resources`);
 
-        // UI View Switching setup
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                switchView(e.currentTarget.dataset.view);
-            });
+                await addDoc(resourcesRef, {
+                    unit,
+                    type,
+                    title,
+                    data,
+                    uploadedBy: auth.currentUser.email,
+                    timestamp: serverTimestamp()
+                });
+                
+                // Success State
+                document.getElementById('admin-upload-form').reset();
+                uploadStatus.textContent = 'Resource uploaded successfully! 🎉';
+                uploadStatus.classList.add('text-primary');
+
+            } catch (error) {
+                // Failure State
+                console.error("Error uploading resource:", error);
+                uploadStatus.textContent = `Upload failed: ${error.message}. Check console for details.`;
+                uploadStatus.classList.add('text-red-500');
+            } finally {
+                // Always reset button and clear status after a timeout
+                uploadSubmitBtn.disabled = false;
+                setTimeout(() => uploadStatus.textContent = '', 5000);
+            }
         });
+
+
+        setupAuth();
 
     </script>
 </body>
