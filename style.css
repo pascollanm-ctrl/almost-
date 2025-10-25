@@ -297,3 +297,62 @@ footer {
     font-size: 0.9rem;
     border-top: 1px solid var(--border-color);
 }
+.notification-bar {
+    background-color: #e0f2f1; /* Light teal background */
+    color: #004d40; /* Dark teal text */
+    padding: 1rem;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    position: relative;
+    top: -100px; /* Initially hidden above the viewport */
+    transition: top 0.5s ease-in-out;
+    z-index: 1050;
+}
+
+.notification-bar.show {
+    top: 0; /* Slides down */
+}
+
+.notification-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.close-notification-btn {
+    background: none;
+    border: none;
+    color: #004d40;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.5rem;
+    line-height: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .notification-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #notification-message {
+        margin-bottom: 0.5rem;
+    }
+
+    .close-notification-btn {
+        position: static;
+        transform: none;
+        margin-top: 0.5rem;
+        padding: 0.25rem;
+    }
+}
