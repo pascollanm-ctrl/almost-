@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinical Medicine Resource Hub</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom Tailwind Configuration (using Inter font) */
@@ -82,27 +81,53 @@
         .prose h1, .prose h2, .prose h3 { font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
         .prose ul { list-style: disc; margin-left: 1.5em; }
         .prose p { margin-bottom: 1em; }
+
+        /* Notification Popup/Toast Styling Start */
+        #notification-popup {
+            position: fixed;
+            top: 60px; /* Adjust based on header height */
+            right: 1rem;
+            z-index: 1000;
+            background-color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-left: 5px solid var(--color-accent);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: translateX(100%);
+            max-width: 300px;
+        }
+        .show-popup {
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+        }
+        /* Notification Popup/Toast Styling End */
+
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container-app flex justify-between items-center py-4">
             <h1 class="text-2xl font-bold text-gray-800">Clinical Resource Hub</h1>
-            <nav class="relative">
-                <!-- Authentication button for logged out state -->
+            <nav class="relative flex items-center space-x-4">
+                
+                <button id="notification-bell" class="relative p-2 rounded-full text-gray-700 hover:bg-gray-100 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span id="notification-badge" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full hidden">
+                        0
+                    </span>
+                </button>
                 <button id="auth-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">Login / Register</button>
                 
-                <!-- User Menu for logged in state (Hidden by default) -->
                 <div id="user-menu-container" class="hidden">
                     <button id="user-menu-toggle" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <!-- Profile Icon (UserCircle SVG) -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-700"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-700"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </button>
 
                     <div id="user-dropdown-menu" class="absolute hidden right-0 mt-3 w-64 bg-white rounded-xl shadow-2xl overflow-hidden ring-1 ring-black ring-opacity-5">
                         <div class="p-4 border-b border-gray-100">
                             <p class="text-sm font-semibold text-gray-800">Current User:</p>
-                            <!-- User ID/Email is displayed here -->
                             <p id="display-user-id" class="font-mono text-xs bg-gray-100 p-1 rounded mt-1 text-gray-600 truncate">Loading...</p>
                         </div>
                         <div class="p-2">
@@ -116,6 +141,12 @@
         </div>
     </header>
 
+    <div id="notification-popup" class="text-sm text-gray-800">
+        <p class="font-semibold text-accent mb-1 flex items-center">
+            <span class="mr-2">🩺</span> New Update
+        </p>
+        <p id="popup-content"></p>
+    </div>
     <main class="container-app hidden" id="app-main-content">
         
         <aside id="sidebar" class="p-4 bg-white rounded-xl shadow-lg h-fit">
@@ -138,7 +169,6 @@
 
         <section id="content-area" class="bg-white p-6 rounded-xl shadow-lg">
 
-            <!-- DISCUSSION VIEW -->
             <div id="discussion-view" class="content-panel active-panel">
                 <h2 class="text-3xl font-extrabold mb-6 text-gray-800">Discussion Forum</h2>
                 <section id="new-topic-section" class="mb-8">
@@ -152,11 +182,9 @@
                 </section>
                 <section id="discussion-list">
                     <h3 class="text-2xl font-semibold mb-4 text-gray-700">Latest Discussions</h3>
-                    <!-- Discussion items will be rendered here -->
-                </section>
+                    </section>
             </div>
 
-            <!-- ANNOUNCEMENT VIEW -->
             <div id="announcement-view" class="content-panel">
                 <h2 class="text-3xl font-extrabold mb-6 text-gray-800">Community Announcements 📢</h2>
                 <section id="new-announcement-section" class="mb-8 hidden">
@@ -168,23 +196,18 @@
                     </form>
                 </section>
                 <section id="announcement-list">
-                    <!-- Announcement items will be rendered here -->
-                </section>
+                    </section>
             </div>
 
-            <!-- RESOURCE VIEW -->
             <div id="resource-view" class="content-panel">
                 <h2 id="resource-view-title" class="text-3xl font-extrabold mb-6 text-gray-800">Unit Resources</h2>
                 <div id="resource-content-display">
                     <p class="text-lg text-gray-600 p-6 bg-gray-100 rounded-lg">Please use the **"Select Unit & Resources"** button in the sidebar to choose content.</p>
                 </div>
-                <!-- AI Study Guide Output Area -->
                 <div id="ai-study-guide-output" class="mt-8">
-                    <!-- LLM output will be injected here -->
-                </div>
+                    </div>
             </div>
             
-            <!-- ADMIN UPLOAD VIEW -->
             <div id="admin-upload-view" class="content-panel">
                 <h2 class="text-3xl font-extrabold mb-6 text-yellow-700">Admin Resource Upload ⚙️</h2>
                 <section id="admin-upload-form-section">
@@ -195,11 +218,9 @@
                             <option value="">-- Choose Unit --</option>
                             <option value="biochemistry">1. Biochemistry</option>
                             <option value="physiology">2. Physiology</option>
-                            <!-- ANATOMY SUB-UNITS START HERE -->
                             <option value="anatomy-general">3A. General Anatomy</option>
                             <option value="anatomy-embryology">3B. Embryology</option>
                             <option value="anatomy-histology">3C. Histology</option>
-                            <!-- ANATOMY SUB-UNITS END HERE -->
                             <option value="nursing-skills">4. Nursing Skills</option>
                         </select>
 
@@ -223,7 +244,6 @@
         </section>
     </main>
 
-    <!-- AUTH MODAL -->
     <section id="auth-modal" class="modal">
         <div class="modal-content">
             <h2 class="text-3xl font-bold mb-4 text-gray-800">Access the Hub</h2>
@@ -246,31 +266,26 @@
         </div>
     </section>
 
-    <!-- UNIT SELECTION MODAL -->
     <section id="unit-selection-modal" class="modal">
         <div class="modal-content small-modal">
             <h2 class="text-2xl font-bold mb-4">Select Clinical Unit</h2>
             <div id="unit-list" class="space-y-3">
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="biochemistry">1. Biochemistry</button>
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="physiology">2. Physiology</button>
-                <!-- ANATOMY SUB-UNITS START HERE -->
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="anatomy-general">3A. General Anatomy</button>
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="anatomy-embryology">3B. Embryology</button>
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="anatomy-histology">3C. Histology</button>
-                <!-- ANATOMY SUB-UNITS END HERE -->
                 <button class="unit-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-primary-outline hover:bg-gray-50 transition duration-150" data-unit="nursing-skills">4. Nursing Skills</button>
             </div>
             <button class="close-btn" data-close-modal="unit-selection-modal">&times;</button>
         </div>
     </section>
 
-    <!-- RESOURCE SELECTION MODAL -->
     <section id="resource-selection-modal" class="modal">
         <div class="modal-content small-modal">
             <h2 id="resource-modal-title" class="text-2xl font-bold mb-2"></h2>
             <p class="text-gray-600 mb-4">What resources do you need?</p>
             <div id="resource-list" class="space-y-3">
-                <!-- These buttons now automatically serve the selected Anatomy sub-unit or main unit -->
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="objectives">Learning Objectives</button>
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="past-papers">Past Papers</button>
                 <button class="resource-select-btn w-full p-4 rounded-lg text-lg font-semibold btn-accent-outline hover:bg-gray-50 transition duration-150" data-resource-type="learning-materials">Learning Materials (Links)</button>
@@ -280,14 +295,12 @@
         </div>
     </section>
 
-    <!-- FOOTER MODIFIED: Removed "Powered by..." line as requested -->
     <footer class="mt-8 py-4 bg-gray-800 text-white">
         <div class="container-app text-center">
             <p class="text-sm">&copy; 2025 Clinical Resource Hub.</p>
         </div>
     </footer>
 
-    <!-- Firebase & LLM SDK Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -308,6 +321,11 @@
         const ADMIN_EMAIL = "pascollanm@gmail.com"; 
         const API_KEY = ""; // Placeholder for LLM API Key injection
 
+        // --- Notification Version Variable Start ---
+        // Increment this variable to trigger a new notification for all users
+        const APP_VERSION = "1.1"; 
+        // --- Notification Version Variable End ---
+
         // --- Firebase Initialization ---
         setLogLevel('Debug');
         const app = initializeApp(firebaseConfig);
@@ -316,7 +334,7 @@
         
         let currentUserId = null;
         let isAdmin = false;
-
+        
         // --- DOM Elements ---
         const authModal = document.getElementById('auth-modal');
         const unitSelectionModal = document.getElementById('unit-selection-modal');
@@ -330,6 +348,14 @@
         const userDropdownMenu = document.getElementById('user-dropdown-menu');
         const logoutButton = document.getElementById('logout-button');
         const displayUserId = document.getElementById('display-user-id');
+        
+        // --- Notification DOM Elements Start ---
+        const notificationBell = document.getElementById('notification-bell');
+        const notificationBadge = document.getElementById('notification-badge');
+        const notificationPopup = document.getElementById('notification-popup');
+        const popupContent = document.getElementById('popup-content');
+        const LOCAL_STORAGE_KEY = 'resourceHubLastSeenVersion';
+        // --- Notification DOM Elements End ---
 
         const adminLink = document.getElementById('admin-link');
         const resourceViewTitle = document.getElementById('resource-view-title');
@@ -357,6 +383,54 @@
             'anatomy-histology': '3C. Histology (Anatomy)',
             'nursing-skills': '4. Nursing Skills'
         };
+
+        // --- Notification Logic Start ---
+        
+        const showNotificationPopup = (message) => {
+            popupContent.innerHTML = message;
+            notificationPopup.classList.add('show-popup');
+            setTimeout(() => {
+                notificationPopup.classList.remove('show-popup');
+            }, 5000); // Popup stays for 5 seconds
+        };
+
+        const checkAndUpdateNotifications = () => {
+            const lastSeenVersion = localStorage.getItem(LOCAL_STORAGE_KEY);
+            
+            if (lastSeenVersion !== APP_VERSION) {
+                // New update available
+                notificationBadge.textContent = '1';
+                notificationBadge.classList.remove('hidden');
+                
+                // Show initial popup (example text)
+                showNotificationPopup(`Hub updated to **v${APP_VERSION}**. Click the bell for details!`);
+            } else {
+                notificationBadge.textContent = '0';
+                notificationBadge.classList.add('hidden');
+            }
+        };
+
+        const handleBellClick = () => {
+            const lastSeenVersion = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+            // If there's a new version, update localStorage and hide the badge
+            if (lastSeenVersion !== APP_VERSION) {
+                localStorage.setItem(LOCAL_STORAGE_KEY, APP_VERSION);
+                notificationBadge.classList.add('hidden');
+                notificationBadge.textContent = '0';
+            }
+            
+            // In a full application, this would open a dropdown or redirect.
+            // For now, it switches to the Announcements view as a proxy for "Updates"
+            switchView('announcement-view');
+        };
+        
+        // Initial check on page load
+        document.addEventListener('DOMContentLoaded', checkAndUpdateNotifications);
+        notificationBell.addEventListener('click', handleBellClick);
+        
+        // --- Notification Logic End ---
+
 
         // --- Deletion Helper Functions (The corrected part for Admin/Author control) ---
 
@@ -836,11 +910,13 @@
                     item.innerHTML = `
                         <div class="flex justify-between items-start">
                             <h4 class="text-xl font-bold text-gray-800 mb-2">${resource.title}</h4>
+                            ${content}
+                            <p class="text-xs text-gray-400 mt-2">Unit: ${unitDisplayMap[resource.unit]} | Type: ${resource.type.replace('-', ' ')}</p>
+                        </div>
+                        <div class="flex justify-between items-center">
+                             ${aiButtonHtml}
                             ${deleteButtonHtml}
                         </div>
-                        ${content}
-                        <p class="text-xs text-gray-400 mt-2">Unit: ${unitDisplayMap[resource.unit]} | Type: ${resource.type.replace('-', ' ')}</p>
-                        ${aiButtonHtml}
                     `;
                     container.appendChild(item);
                     
